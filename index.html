@@ -1,1 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary: #2c3e50;
+        --secondary: #34495e;
+        --accent: #3498db;
+        --bg: #f4f7f6;
+        --white: #ffffff;
+      }
+      body { font-family: 'Roboto', sans-serif; background-color: var(--bg); margin: 0; padding: 0; }
+      
+      /* Login Overlay */
+      #login-screen {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 1000;
+      }
+      .login-box {
+        background: var(--white); padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        width: 300px; text-align: center;
+      }
+      
+      /* Header & Tabs */
+      header { background: var(--primary); color: white; padding: 15px; text-align: center; }
+      .tabs { display: flex; background: var(--secondary); overflow-x: auto; }
+      .tab-link {
+        padding: 15px 25px; color: #bdc3c7; cursor: pointer; border: none;
+        background: none; font-size: 16px; transition: 0.3s;
+      }
+      .tab-link:hover { background: rgba(255,255,255,0.1); }
+      .tab-link.active { color: white; border-bottom: 3px solid var(--accent); background: rgba(255,255,255,0.05); }
+      
+      /* Main Content */
+      .container { padding: 20px; max-width: 800px; margin: auto; }
+      .form-group { margin-bottom: 20px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+      label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
+      input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+      button.btn-save {
+        background: var(--accent); color: white; border: none; padding: 12px 20px;
+        border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;
+      }
+      button.btn-save:hover { background: #2980b9; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
 
+    <div id="login-screen">
+      <div class="login-box">
+        <h2>Metales</h2>
+        <input type="text" id="user" placeholder="Usuario" style="margin-bottom:10px;"><br>
+        <input type="password" id="pass" placeholder="Contraseña" style="margin-bottom:20px;"><br>
+        <button class="btn-save" onclick="login()">Entrar</button>
+      </div>
+    </div>
+
+    <div id="app" class="hidden">
+      <header>
+        <h1 id="app-title">Producción Metales</h1>
+      </header>
+      
+      <nav class="tabs">
+        <button class="tab-link active" onclick="openTab(event, 'Finder')">Finder</button>
+        <button class="tab-link" onclick="openTab(event, 'Zurik')">Zurik</button>
+        <button class="tab-link" onclick="openTab(event, 'Medios densos')">Medios densos</button>
+        <button class="tab-link" onclick="openTab(event, 'Steinert')">Steinert</button>
+      </nav>
+
+      <div class="container">
+        <div class="form-group">
+          <h3 id="machine-name">Máquina: Finder</h3>
+          <label>Fecha</label>
+          <input type="date" id="fecha">
+          
+          <label style="margin-top:15px;">Turno</label>
+          <select id="turno">
+            <option value="Mañana">Mañana</option>
+            <option value="Tarde">Tarde</option>
+            <option value="Noche">Noche</option>
+          </select>
+          
+          <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+          <button class="btn-save" onclick="enviarDatos()">Guardar Parte</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentUser = "";
+      let currentMachine = "Finder";
+
+      function login() {
+        const u = document.getElementById("user").value;
+        const p = document.getElementById("pass").value;
+        
+        google.script.run.withSuccessHandler(res => {
+          if(res.success) {
+            currentUser = res.user;
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("app").classList.remove("hidden");
+            document.getElementById("fecha").valueAsDate = new Date();
+          } else {
+            alert("Credenciales incorrectas");
+          }
+        }).validarUsuario(u, p);
+      }
+
+      function openTab(evt, name) {
+        currentMachine = name;
+        document.getElementById("machine-name").innerText = "Máquina: " + name;
+        
+        let links = document.getElementsByClassName("tab-link");
+        for (let i = 0; i < links.length; i++) {
+          links[i].classList.remove("active");
+        }
+        evt.currentTarget.classList.add("active");
+      }
+
+      function enviarDatos() {
+        const fecha = document.getElementById("fecha").value;
+        const turno = document.getElementById("turno").value;
+        
+        if(!fecha) return alert("Selecciona una fecha");
+
+        google.script.run.withSuccessHandler(msg => {
+          alert(msg);
+        }).guardarRegistro(currentMachine, fecha, turno, currentUser);
+      }
+    </script>
+  </body>
+</html>
