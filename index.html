@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
   
   <style>
-    /* --- ESTILOS VISUALES --- */
     :root {
       --primary: #2c3e50;
       --secondary: #34495e;
@@ -19,27 +18,22 @@
 
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--light); margin: 0; }
     
-    /* Login */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
     .login-card { background: var(--white); padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 320px; text-align: center; }
 
-    /* Estructura Principal */
     header { background: var(--primary); color: var(--white); padding: 15px; text-align: center; }
     
-    /* Controles Globales (Fecha y Turno) */
     .global-controls { background: var(--white); padding: 15px; display: flex; gap: 15px; justify-content: center; border-bottom: 2px solid var(--border); }
     .global-controls div { display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--primary); }
     .global-controls input, .global-controls select { margin: 0; padding: 8px; width: auto; }
 
-    /* Navegación Máquinas */
     nav.tabs { display: flex; background: var(--secondary); overflow-x: auto; }
     .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: var(--border); cursor: pointer; font-weight: 600; transition: 0.3s; }
     .tab-btn.active { color: var(--white); border-bottom: 4px solid var(--accent); background: rgba(255,255,255,0.1); }
 
-    /* Contenedor y Sub-pestañas */
     .container { padding: 20px; max-width: 700px; margin: auto; }
     .sub-tabs { display: flex; margin-bottom: 20px; gap: 10px; }
     .sub-tab-btn { flex: 1; padding: 10px; border: 1px solid var(--border); background: var(--light); cursor: pointer; font-weight: bold; border-radius: 5px; color: var(--primary); }
@@ -47,11 +41,10 @@
 
     .card { background: var(--white); padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     
-    /* Formularios */
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: bold; color: var(--secondary); margin-bottom: 5px; font-size: 14px; }
     input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--border); box-sizing: border-box; font-size: 15px; }
-    input[readonly] { background-color: #f9f9f9; color: #7f8c8d; cursor: not-allowed; }
+    input[readonly] { background-color: #e8ecef; color: #7f8c8d; cursor: not-allowed; font-weight: bold; }
     
     button.btn-submit { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
     button.btn-submit:disabled { background: #95a5a6; }
@@ -59,7 +52,6 @@
     .hidden { display: none !important; }
     .loader { text-align: center; color: var(--accent); font-weight: bold; margin-top: 10px; }
     
-    /* Grid para incidencias */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
   </style>
 </head>
@@ -100,18 +92,15 @@
       <h3 id="titulo-maquina" style="color: var(--primary); text-align: center; text-transform: uppercase;">MÁQUINA: FINDER</h3>
 
       <div class="sub-tabs">
-        <button id="tab-horas" class="sub-tab-btn active" onclick="cambiarSeccion('horas')">1. HORAS DE TRABAJO</button>
+        <button id="tab-horas" class="sub-tab-btn active" onclick="cambiarSeccion('horas')">1. PRODUCCIÓN</button>
         <button id="tab-incidencias" class="sub-tab-btn" onclick="cambiarSeccion('incidencias')">2. INCIDENCIAS</button>
       </div>
 
       <div id="seccion-horas" class="card">
-        <div id="alerta-medios-densos" class="hidden" style="color: red; text-align: center; font-weight: bold; padding: 20px;">
-          Producción pendiente de definir para Medios Densos. Ve a la pestaña de incidencias.
-        </div>
-        <div id="form-horas">
+        <div id="form-std">
           <div class="grid-2">
             <div class="form-group">
-              <label>Horas de máquina iniciales (Autocompletado)</label>
+              <label>Horas de máquina iniciales</label>
               <input type="number" id="h-iniciales" readonly placeholder="Cargando...">
             </div>
             <div class="form-group">
@@ -122,59 +111,57 @@
           <button class="btn-submit" id="btn-guardar-horas" onclick="guardarHoras()">GUARDAR HORAS</button>
           <div id="status-horas" class="loader"></div>
         </div>
+
+        <div id="form-md" class="hidden">
+          <div class="form-group">
+            <label>Operario</label>
+            <select id="md-operario"></select>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label>Horas Máquina Iniciales</label><input type="number" id="md-h-maq-ini" readonly></div>
+            <div class="form-group"><label>Horas Máquina Finales</label><input type="number" id="md-h-maq-fin" placeholder="Obligatorio"></div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label>Horas Prod. Inicio</label><input type="number" id="md-h-prod-ini" readonly></div>
+            <div class="form-group"><label>Horas Prod. Fin</label><input type="number" id="md-h-prod-fin" placeholder="Obligatorio"></div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label>Contador Inicio</label><input type="number" id="md-cont-ini" readonly></div>
+            <div class="form-group"><label>Contador Fin</label><input type="number" id="md-cont-fin" placeholder="Obligatorio"></div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label>FeSi (Cantidad)</label><input type="number" id="md-fesi" step="any" placeholder="Ej: 15.5"></div>
+            <div class="form-group"><label>Observaciones</label><input type="text" id="md-obs" placeholder="Opcional"></div>
+          </div>
+          <button class="btn-submit" id="btn-guardar-md" onclick="guardarMediosDensos()">GUARDAR PRODUCCIÓN (M. DENSOS)</button>
+          <div id="status-md" class="loader"></div>
+        </div>
       </div>
 
       <div id="seccion-incidencias" class="card hidden">
         <div class="grid-2">
-          <div class="form-group">
-            <label>Lote</label>
-            <input type="text" id="inc-lote" placeholder="Dato alfanumérico">
-          </div>
-          <div class="form-group">
-            <label>Máquina Afectada</label>
-            <select id="inc-maquina"></select>
-          </div>
+          <div class="form-group"><label>Lote</label><input type="text" id="inc-lote" placeholder="Dato alfanumérico"></div>
+          <div class="form-group"><label>Máquina Afectada</label><select id="inc-maquina"></select></div>
         </div>
-        
         <div class="grid-2">
-          <div class="form-group">
-            <label>Hora Parada</label>
-            <select id="inc-h-parada"></select>
-          </div>
-          <div class="form-group">
-            <label>Hora Arranque</label>
-            <select id="inc-h-arranque"></select>
-          </div>
+          <div class="form-group"><label>Hora Parada</label><select id="inc-h-parada"></select></div>
+          <div class="form-group"><label>Hora Arranque</label><select id="inc-h-arranque"></select></div>
         </div>
-
-        <div class="form-group">
-          <label>Motivo Parada</label>
-          <select id="inc-motivo"></select>
-        </div>
-
-        <div class="form-group">
-          <label>Observaciones</label>
-          <input type="text" id="inc-obs" placeholder="Detalles de la incidencia...">
-        </div>
-
+        <div class="form-group"><label>Motivo Parada</label><select id="inc-motivo"></select></div>
+        <div class="form-group"><label>Observaciones</label><input type="text" id="inc-obs" placeholder="Detalles de la incidencia..."></div>
         <button class="btn-submit" id="btn-guardar-incidencia" onclick="guardarIncidencia()">GUARDAR INCIDENCIA</button>
         <div id="status-incidencias" class="loader"></div>
       </div>
-
     </div>
   </div>
 
   <script>
-    /* --- LÓGICA DE LA APLICACIÓN --- */
-    
-    // !!! IMPORTANTE: PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT !!!
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3tDrmfUh-A8nivLH2_yANtopv-zzdbeUlCwZcX4FAS7uH3P9BGlpSB-9ZyrKRSnC8/exec"; 
+    // REEMPLAZA ESTA URL POR LA TUYA DESPUÉS DE IMPLEMENTAR EN APPS SCRIPT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwY7ywkwJcp-wv3SxEZ7xEo-VR1_eUWpC1lFXzqhk0BVeRnJ8a1kcaeFuQfZw5CNYRb/exec"; 
 
-    // Variables de estado
     let USUARIO_ACTUAL = "";
     let MAQUINA_ACTUAL = "Finder";
 
-    // 1. LOGIN
     function ejecutarLogin() {
       const u = document.getElementById("user").value;
       const p = document.getElementById("pass").value;
@@ -199,11 +186,10 @@
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("global-fecha").valueAsDate = new Date();
           
-          // Poblar los desplegables de configuración
           poblarDesplegable("inc-motivo", res.motivos);
           poblarDesplegable("inc-maquina", res.maquinas);
+          poblarDesplegable("md-operario", res.operarios);
           
-          // Iniciar lógica de la primera pestaña
           generarHorasDesplegable();
           cargarHorasIniciales();
         } else {
@@ -218,7 +204,6 @@
       .finally(() => status.innerText = "");
     }
 
-    // Funciones auxiliares para desplegables
     function poblarDesplegable(idElemento, arrayDatos) {
       const select = document.getElementById(idElemento);
       select.innerHTML = "";
@@ -227,7 +212,6 @@
       });
     }
 
-    // Generador de horas en saltos de 10 min
     function generarHorasDesplegable() {
       const turno = document.getElementById("global-turno").value;
       let horas = [];
@@ -235,13 +219,11 @@
       if (turno === "Mañana") horas = calcularRangoHoras(6, 14);
       else if (turno === "Tarde") horas = calcularRangoHoras(14, 22);
       else if (turno === "Noche") {
-        // La noche cruza medianoche, calculamos 2 rangos
         horas = calcularRangoHoras(22, 23, true).concat(calcularRangoHoras(0, 6));
       }
 
       let opcionesHTML = "";
       horas.forEach(h => opcionesHTML += `<option value="${h}">${h}</option>`);
-      
       document.getElementById("inc-h-parada").innerHTML = opcionesHTML;
       document.getElementById("inc-h-arranque").innerHTML = opcionesHTML;
     }
@@ -249,7 +231,6 @@
     function calcularRangoHoras(inicio, fin, esFinDeDia = false) {
       let result = [];
       let limiteH = esFinDeDia ? 24 : fin;
-      
       for (let h = inicio; h < limiteH; h++) {
         for (let m = 0; m < 60; m += 10) {
           let hh = h.toString().padStart(2, '0');
@@ -261,34 +242,27 @@
       return result;
     }
 
-    // 2. NAVEGACIÓN
     function cambiarMaquina(evt, nombre) {
       MAQUINA_ACTUAL = nombre;
       document.getElementById("titulo-maquina").innerText = "MÁQUINA: " + nombre;
       
-      // Estilos de botones
       const botones = document.getElementsByClassName("tab-btn");
       for (let b of botones) b.classList.remove("active");
       evt.currentTarget.classList.add("active");
 
-      // Lógica especial para Medios Densos
       if (nombre === "Medios densos") {
-        document.getElementById("form-horas").classList.add("hidden");
-        document.getElementById("alerta-medios-densos").classList.remove("hidden");
-        cambiarSeccion('incidencias'); // Fuerza ir a incidencias
-        document.getElementById("tab-horas").disabled = true;
+        document.getElementById("form-std").classList.add("hidden");
+        document.getElementById("form-md").classList.remove("hidden");
       } else {
-        document.getElementById("form-horas").classList.remove("hidden");
-        document.getElementById("alerta-medios-densos").classList.add("hidden");
-        document.getElementById("tab-horas").disabled = false;
-        cambiarSeccion('horas');
-        cargarHorasIniciales();
+        document.getElementById("form-std").classList.remove("hidden");
+        document.getElementById("form-md").classList.add("hidden");
       }
+      
+      cambiarSeccion('horas');
+      cargarHorasIniciales();
     }
 
     function cambiarSeccion(seccion) {
-      if (seccion === 'horas' && MAQUINA_ACTUAL === "Medios densos") return; // Bloqueo de seguridad
-
       document.getElementById("tab-horas").classList.remove("active");
       document.getElementById("tab-incidencias").classList.remove("active");
       document.getElementById("seccion-horas").classList.add("hidden");
@@ -298,11 +272,18 @@
       document.getElementById("seccion-" + seccion).classList.remove("hidden");
     }
 
-    // 3. RECUPERAR HORAS INICIALES DEL EXCEL
     function cargarHorasIniciales() {
-      const inputIni = document.getElementById("h-iniciales");
-      inputIni.value = "";
-      inputIni.placeholder = "Buscando en Excel...";
+      if (MAQUINA_ACTUAL === "Medios densos") {
+        document.getElementById("md-h-maq-ini").placeholder = "Cargando...";
+        document.getElementById("md-h-prod-ini").placeholder = "Cargando...";
+        document.getElementById("md-cont-ini").placeholder = "Cargando...";
+        document.getElementById("md-h-maq-ini").value = "";
+        document.getElementById("md-h-prod-ini").value = "";
+        document.getElementById("md-cont-ini").value = "";
+      } else {
+        document.getElementById("h-iniciales").placeholder = "Cargando...";
+        document.getElementById("h-iniciales").value = "";
+      }
       
       const datos = new URLSearchParams();
       datos.append('accion', 'getHoras');
@@ -312,14 +293,17 @@
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          inputIni.value = res.horas;
-        } else {
-          inputIni.placeholder = "Error al cargar";
+          if (MAQUINA_ACTUAL === "Medios densos") {
+            document.getElementById("md-h-maq-ini").value = res.hMaq;
+            document.getElementById("md-h-prod-ini").value = res.hProd;
+            document.getElementById("md-cont-ini").value = res.cont;
+          } else {
+            document.getElementById("h-iniciales").value = res.horas;
+          }
         }
       });
     }
 
-    // 4. GUARDAR HORAS DE TRABAJO
     function guardarHoras() {
       const f = document.getElementById("global-fecha").value;
       const t = document.getElementById("global-turno").value;
@@ -346,14 +330,65 @@
       .then(res => {
         if (res.success) {
           alert(res.mensaje);
-          document.getElementById("h-finales").value = ""; // Limpiar tras guardar
-          cargarHorasIniciales(); // Recargar el nuevo valor inicial
+          document.getElementById("h-finales").value = "";
+          cargarHorasIniciales();
         } else alert("Error: " + res.error);
       })
       .finally(() => { status.innerText = ""; btn.disabled = false; });
     }
 
-    // 5. GUARDAR INCIDENCIAS
+    function guardarMediosDensos() {
+      const f = document.getElementById("global-fecha").value;
+      const t = document.getElementById("global-turno").value;
+      const op = document.getElementById("md-operario").value;
+
+      const hMi = document.getElementById("md-h-maq-ini").value;
+      const hMf = document.getElementById("md-h-maq-fin").value;
+      const hPi = document.getElementById("md-h-prod-ini").value;
+      const hPf = document.getElementById("md-h-prod-fin").value;
+      const ci = document.getElementById("md-cont-ini").value;
+      const cf = document.getElementById("md-cont-fin").value;
+      const fesi = document.getElementById("md-fesi").value;
+      const obs = document.getElementById("md-obs").value;
+
+      if (!f || !hMf || !hPf || !cf) {
+        return alert("Rellena todos los campos de datos finales.");
+      }
+
+      const status = document.getElementById("status-md");
+      const btn = document.getElementById("btn-guardar-md");
+      status.innerText = "Guardando Producción..."; btn.disabled = true;
+
+      const datos = new URLSearchParams();
+      datos.append('accion', 'guardarMD');
+      datos.append('fecha', f);
+      datos.append('turno', t);
+      datos.append('operario', op);
+      datos.append('hMaqIni', hMi);
+      datos.append('hMaqFin', hMf);
+      datos.append('hProdIni', hPi);
+      datos.append('hProdFin', hPf);
+      datos.append('contIni', ci);
+      datos.append('contFin', cf);
+      datos.append('fesi', fesi);
+      datos.append('obs', obs);
+
+      fetch(SCRIPT_URL, { method: 'POST', body: datos })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          alert(res.mensaje);
+          document.getElementById("md-h-maq-fin").value = "";
+          document.getElementById("md-h-prod-fin").value = "";
+          document.getElementById("md-cont-fin").value = "";
+          document.getElementById("md-fesi").value = "";
+          document.getElementById("md-obs").value = "";
+          cargarHorasIniciales();
+        } else alert("Error: " + res.error);
+      })
+      .finally(() => { status.innerText = ""; btn.disabled = false; });
+    }
+
     function guardarIncidencia() {
       const f = document.getElementById("global-fecha").value;
       const t = document.getElementById("global-turno").value;
@@ -373,7 +408,7 @@
 
       const datos = new URLSearchParams();
       datos.append('accion', 'guardarIncidencia');
-      datos.append('maquina', MAQUINA_ACTUAL); // Esto define en qué pestaña del Excel cae (ej: "incidencias Finder")
+      datos.append('maquina', MAQUINA_ACTUAL); 
       datos.append('fecha', f);
       datos.append('turno', t);
       datos.append('usuario', USUARIO_ACTUAL);
@@ -389,7 +424,6 @@
       .then(res => {
         if (res.success) {
           alert(res.mensaje);
-          // Limpiar formulario de incidencias
           document.getElementById("inc-lote").value = "";
           document.getElementById("inc-obs").value = "";
         } else alert("Error: " + res.error);
