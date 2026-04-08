@@ -130,7 +130,7 @@
             <div class="form-group"><label>Contador Fin</label><input type="number" id="md-cont-fin" placeholder="Obligatorio"></div>
           </div>
           <div class="grid-2">
-            <div class="form-group"><label>FeSi (Nº saca)</label><input type="number" id="md-fesi" step="any" placeholder="Ej: 15.5"></div>
+            <div class="form-group"><label>FeSi (Cantidad)</label><input type="number" id="md-fesi" step="any" placeholder="Ej: 15.5"></div>
             <div class="form-group"><label>Observaciones</label><input type="text" id="md-obs" placeholder="Opcional"></div>
           </div>
           <button class="btn-submit" id="btn-guardar-md" onclick="guardarMediosDensos()">GUARDAR PRODUCCIÓN (M. DENSOS)</button>
@@ -141,7 +141,7 @@
       <div id="seccion-incidencias" class="card hidden">
         <div class="grid-2">
           <div class="form-group"><label>Lote</label><input type="text" id="inc-lote" placeholder="Dato alfanumérico"></div>
-          <div class="form-group"><label>Máquina Afectada</label><select id="inc-maquina"></select></div>
+          <div class="form-group"><label>Activo Afectado</label><select id="inc-maquina"></select></div>
         </div>
         <div class="grid-2">
           <div class="form-group"><label>Hora Parada</label><select id="inc-h-parada"></select></div>
@@ -156,11 +156,19 @@
   </div>
 
   <script>
-    // REEMPLAZA ESTA URL POR LA TUYA DESPUÉS DE IMPLEMENTAR EN APPS SCRIPT
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwY7ywkwJcp-wv3SxEZ7xEo-VR1_eUWpC1lFXzqhk0BVeRnJ8a1kcaeFuQfZw5CNYRb/exec"; 
+    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7WhKfiTJpqErNMiMXo_GuXz6ELi9_jUIrNDObg9sZYnZZSR62VBb-ND7QXQk7rtpX/exec"; 
 
     let USUARIO_ACTUAL = "";
     let MAQUINA_ACTUAL = "Finder";
+    
+    // Objeto para guardar las listas de activos separadas por máquina
+    let LISTAS_ACTIVOS = {
+      "Finder": [],
+      "Zurik": [],
+      "Medios densos": [],
+      "Steinert": []
+    };
 
     function ejecutarLogin() {
       const u = document.getElementById("user").value;
@@ -186,9 +194,17 @@
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("global-fecha").valueAsDate = new Date();
           
+          // Guardamos las listas recibidas del Excel en nuestra variable global
+          LISTAS_ACTIVOS["Finder"] = res.activosFinder || [];
+          LISTAS_ACTIVOS["Zurik"] = res.activosZurik || [];
+          LISTAS_ACTIVOS["Medios densos"] = res.activosMD || [];
+          LISTAS_ACTIVOS["Steinert"] = res.activosSteinert || [];
+
           poblarDesplegable("inc-motivo", res.motivos);
-          poblarDesplegable("inc-maquina", res.maquinas);
           poblarDesplegable("md-operario", res.operarios);
+          
+          // Cargamos los activos para la pestaña que está abierta por defecto (Finder)
+          poblarDesplegable("inc-maquina", LISTAS_ACTIVOS[MAQUINA_ACTUAL]);
           
           generarHorasDesplegable();
           cargarHorasIniciales();
@@ -258,6 +274,9 @@
         document.getElementById("form-md").classList.add("hidden");
       }
       
+      // AL CAMBIAR DE MÁQUINA: Actualizamos el desplegable de incidencias con sus activos correspondientes
+      poblarDesplegable("inc-maquina", LISTAS_ACTIVOS[nombre]);
+
       cambiarSeccion('horas');
       cargarHorasIniciales();
     }
