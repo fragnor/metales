@@ -14,6 +14,7 @@
       --light: #ecf0f1;
       --white: #ffffff;
       --border: #bdc3c7;
+      --danger: #e74c3c;
     }
 
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--light); margin: 0; }
@@ -46,13 +47,19 @@
     input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--border); box-sizing: border-box; font-size: 15px; }
     input[readonly] { background-color: #e8ecef; color: #7f8c8d; cursor: not-allowed; font-weight: bold; }
     
-    button.btn-submit { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
+    button.btn-submit { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; transition: 0.2s; }
     button.btn-submit:disabled { background: #95a5a6; }
 
     .hidden { display: none !important; }
     .loader { text-align: center; color: var(--accent); font-weight: bold; margin-top: 10px; }
     
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+    /* Estilos para lista de incidencias recientes */
+    .contenedor-recientes { margin-top: 25px; border-top: 2px dashed var(--border); padding-top: 15px; }
+    .incidencia-item { background: #fdfbfb; border: 1px solid #e1e8ed; padding: 10px 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; }
+    .btn-borrar { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .btn-borrar:hover { background: #c0392b; }
   </style>
 </head>
 <body>
@@ -105,7 +112,7 @@
             </div>
             <div class="form-group">
               <label>Horas de máquina finales</label>
-              <input type="number" id="h-finales" placeholder="Introduce horas finales">
+              <input type="number" id="h-finales" placeholder="Introduce horas finales" oninput="marcarModificadoProduccion()">
             </div>
           </div>
           <button class="btn-submit" id="btn-guardar-horas" onclick="guardarHoras()">GUARDAR HORAS</button>
@@ -119,19 +126,19 @@
           </div>
           <div class="grid-2">
             <div class="form-group"><label>Horas Máquina Iniciales</label><input type="number" id="md-h-maq-ini" readonly></div>
-            <div class="form-group"><label>Horas Máquina Finales</label><input type="number" id="md-h-maq-fin" placeholder="Obligatorio"></div>
+            <div class="form-group"><label>Horas Máquina Finales</label><input type="number" id="md-h-maq-fin" placeholder="Obligatorio" oninput="marcarModificadoProduccion()"></div>
           </div>
           <div class="grid-2">
             <div class="form-group"><label>Horas Prod. Inicio</label><input type="number" id="md-h-prod-ini" readonly></div>
-            <div class="form-group"><label>Horas Prod. Fin</label><input type="number" id="md-h-prod-fin" placeholder="Obligatorio"></div>
+            <div class="form-group"><label>Horas Prod. Fin</label><input type="number" id="md-h-prod-fin" placeholder="Obligatorio" oninput="marcarModificadoProduccion()"></div>
           </div>
           <div class="grid-2">
             <div class="form-group"><label>Contador Inicio</label><input type="number" id="md-cont-ini" readonly></div>
-            <div class="form-group"><label>Contador Fin</label><input type="number" id="md-cont-fin" placeholder="Obligatorio"></div>
+            <div class="form-group"><label>Contador Fin</label><input type="number" id="md-cont-fin" placeholder="Obligatorio" oninput="marcarModificadoProduccion()"></div>
           </div>
           <div class="grid-2">
-            <div class="form-group"><label>FeSi (Cantidad)</label><input type="number" id="md-fesi" step="any" placeholder="Ej: 15.5"></div>
-            <div class="form-group"><label>Observaciones</label><input type="text" id="md-obs" placeholder="Opcional"></div>
+            <div class="form-group"><label>FeSi (Nº saca)</label><input type="number" id="md-fesi" step="any" placeholder="Ej: 15.5" oninput="marcarModificadoProduccion()"></div>
+            <div class="form-group"><label>Observaciones</label><input type="text" id="md-obs" placeholder="Opcional" oninput="marcarModificadoProduccion()"></div>
           </div>
           <button class="btn-submit" id="btn-guardar-md" onclick="guardarMediosDensos()">GUARDAR PRODUCCIÓN (M. DENSOS)</button>
           <div id="status-md" class="loader"></div>
@@ -140,35 +147,42 @@
 
       <div id="seccion-incidencias" class="card hidden">
         <div class="grid-2">
-          <div class="form-group"><label>Lote</label><input type="text" id="inc-lote" placeholder="Dato alfanumérico"></div>
-          <div class="form-group"><label>Activo Afectado</label><select id="inc-maquina"></select></div>
+          <div class="form-group"><label>Lote (Opcional)</label><input type="text" id="inc-lote" placeholder="" oninput="marcarModificadoIncidencia()"></div>
+          <div class="form-group"><label>Activo Afectado</label><select id="inc-maquina" onchange="marcarModificadoIncidencia()"></select></div>
         </div>
         <div class="grid-2">
-          <div class="form-group"><label>Hora Parada</label><select id="inc-h-parada"></select></div>
-          <div class="form-group"><label>Hora Arranque</label><select id="inc-h-arranque"></select></div>
+          <div class="form-group"><label>Hora Parada</label><select id="inc-h-parada" onchange="marcarModificadoIncidencia()"></select></div>
+          <div class="form-group"><label>Hora Arranque</label><select id="inc-h-arranque" onchange="marcarModificadoIncidencia()"></select></div>
         </div>
-        <div class="form-group"><label>Motivo Parada</label><select id="inc-motivo"></select></div>
-        <div class="form-group"><label>Observaciones</label><input type="text" id="inc-obs" placeholder="Detalles de la incidencia..."></div>
+        <div class="form-group"><label>Motivo Parada</label><select id="inc-motivo" onchange="marcarModificadoIncidencia()"></select></div>
+        <div class="form-group"><label>Observaciones</label><input type="text" id="inc-obs" placeholder="Detalles de la incidencia..." oninput="marcarModificadoIncidencia()"></div>
+        
         <button class="btn-submit" id="btn-guardar-incidencia" onclick="guardarIncidencia()">GUARDAR INCIDENCIA</button>
         <div id="status-incidencias" class="loader"></div>
+
+        <div id="contenedor-recientes" class="contenedor-recientes hidden">
+          <h4 style="color: var(--secondary); margin-top: 0;">Últimas registradas (en esta sesión)</h4>
+          <div id="lista-incidencias"></div>
+        </div>
+
       </div>
     </div>
   </div>
 
   <script>
     // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7WhKfiTJpqErNMiMXo_GuXz6ELi9_jUIrNDObg9sZYnZZSR62VBb-ND7QXQk7rtpX/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx44GwF68PbpPqi_isF1ijWos-VnK3EYRd84sTJP47N82JhYgbEEGN_1DI6Gqh4ekNi/exec"; 
 
     let USUARIO_ACTUAL = "";
     let MAQUINA_ACTUAL = "Finder";
     
-    // Objeto para guardar las listas de activos separadas por máquina
-    let LISTAS_ACTIVOS = {
-      "Finder": [],
-      "Zurik": [],
-      "Medios densos": [],
-      "Steinert": []
-    };
+    let LISTAS_ACTIVOS = { "Finder": [], "Zurik": [], "Medios densos": [], "Steinert": [] };
+    
+    // Controles de modificaciones sin guardar
+    let datosIncidenciaModificados = false;
+    let datosProduccionModificados = false;
+    
+    let incidenciasRecientes = []; 
 
     function ejecutarLogin() {
       const u = document.getElementById("user").value;
@@ -194,7 +208,6 @@
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("global-fecha").valueAsDate = new Date();
           
-          // Guardamos las listas recibidas del Excel en nuestra variable global
           LISTAS_ACTIVOS["Finder"] = res.activosFinder || [];
           LISTAS_ACTIVOS["Zurik"] = res.activosZurik || [];
           LISTAS_ACTIVOS["Medios densos"] = res.activosMD || [];
@@ -202,8 +215,6 @@
 
           poblarDesplegable("inc-motivo", res.motivos);
           poblarDesplegable("md-operario", res.operarios);
-          
-          // Cargamos los activos para la pestaña que está abierta por defecto (Finder)
           poblarDesplegable("inc-maquina", LISTAS_ACTIVOS[MAQUINA_ACTUAL]);
           
           generarHorasDesplegable();
@@ -249,16 +260,52 @@
       let limiteH = esFinDeDia ? 24 : fin;
       for (let h = inicio; h < limiteH; h++) {
         for (let m = 0; m < 60; m += 10) {
-          let hh = h.toString().padStart(2, '0');
-          let mm = m.toString().padStart(2, '0');
-          result.push(`${hh}:${mm}`);
+          result.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
         }
       }
       if (!esFinDeDia) result.push(`${fin.toString().padStart(2, '0')}:00`);
       return result;
     }
 
+    // --- LÓGICA DE AVISOS Y LIMPIEZA ---
+    function marcarModificadoIncidencia() {
+      datosIncidenciaModificados = true;
+    }
+    
+    function marcarModificadoProduccion() {
+      datosProduccionModificados = true;
+    }
+
+    function limpiarFormularioIncidencias() {
+      document.getElementById("inc-lote").value = "";
+      document.getElementById("inc-obs").value = "";
+      document.getElementById("inc-maquina").selectedIndex = 0;
+      document.getElementById("inc-motivo").selectedIndex = 0;
+      document.getElementById("inc-h-parada").selectedIndex = 0;
+      document.getElementById("inc-h-arranque").selectedIndex = 0;
+      datosIncidenciaModificados = false; 
+    }
+
+    function limpiarFormularioProduccion() {
+      document.getElementById("h-finales").value = "";
+      document.getElementById("md-h-maq-fin").value = "";
+      document.getElementById("md-h-prod-fin").value = "";
+      document.getElementById("md-cont-fin").value = "";
+      document.getElementById("md-fesi").value = "";
+      document.getElementById("md-obs").value = "";
+      datosProduccionModificados = false;
+    }
+
     function cambiarMaquina(evt, nombre) {
+      // Advertencia general si hay datos de cualquier tipo sin guardar
+      if (datosIncidenciaModificados || datosProduccionModificados) {
+        if (!confirm("Tienes datos sin guardar. Si cambias de máquina se perderán. ¿Continuar?")) {
+          return;
+        }
+        limpiarFormularioIncidencias();
+        limpiarFormularioProduccion();
+      }
+
       MAQUINA_ACTUAL = nombre;
       document.getElementById("titulo-maquina").innerText = "MÁQUINA: " + nombre;
       
@@ -274,14 +321,28 @@
         document.getElementById("form-md").classList.add("hidden");
       }
       
-      // AL CAMBIAR DE MÁQUINA: Actualizamos el desplegable de incidencias con sus activos correspondientes
       poblarDesplegable("inc-maquina", LISTAS_ACTIVOS[nombre]);
+
+      // Vaciamos la lista temporal de la vista anterior
+      incidenciasRecientes = []; 
+      renderizarIncidenciasRecientes();
 
       cambiarSeccion('horas');
       cargarHorasIniciales();
     }
 
     function cambiarSeccion(seccion) {
+      // Validaciones cruzadas de cambio de pestaña
+      if (seccion === 'horas' && datosIncidenciaModificados) {
+        if (!confirm("Tienes datos de incidencia sin guardar. Si cambias de pestaña se perderán. ¿Continuar?")) return;
+        limpiarFormularioIncidencias();
+      }
+      
+      if (seccion === 'incidencias' && datosProduccionModificados) {
+        if (!confirm("Tienes datos de producción sin guardar. Si cambias de pestaña se perderán. ¿Continuar?")) return;
+        limpiarFormularioProduccion();
+      }
+
       document.getElementById("tab-horas").classList.remove("active");
       document.getElementById("tab-incidencias").classList.remove("active");
       document.getElementById("seccion-horas").classList.add("hidden");
@@ -349,6 +410,7 @@
       .then(res => {
         if (res.success) {
           alert(res.mensaje);
+          datosProduccionModificados = false; // Se reinicia al guardar con éxito
           document.getElementById("h-finales").value = "";
           cargarHorasIniciales();
         } else alert("Error: " + res.error);
@@ -397,6 +459,7 @@
       .then(res => {
         if (res.success) {
           alert(res.mensaje);
+          datosProduccionModificados = false; // Se reinicia al guardar con éxito
           document.getElementById("md-h-maq-fin").value = "";
           document.getElementById("md-h-prod-fin").value = "";
           document.getElementById("md-cont-fin").value = "";
@@ -408,18 +471,25 @@
       .finally(() => { status.innerText = ""; btn.disabled = false; });
     }
 
+    // --- GUARDAR INCIDENCIA Y RENDERIZAR LISTA ---
     function guardarIncidencia() {
       const f = document.getElementById("global-fecha").value;
       const t = document.getElementById("global-turno").value;
       
-      const lote = document.getElementById("inc-lote").value;
+      let lote = document.getElementById("inc-lote").value.trim();
       const hParada = document.getElementById("inc-h-parada").value;
       const hArranque = document.getElementById("inc-h-arranque").value;
       const motivo = document.getElementById("inc-motivo").value;
       const maqAfectada = document.getElementById("inc-maquina").value;
       const obs = document.getElementById("inc-obs").value;
 
-      if (!f || !lote || !motivo) return alert("Faltan datos obligatorios (Fecha, Lote o Motivo)");
+      // Validación para evitar paradas y arranques en la misma hora
+      if (hParada === hArranque) {
+        return alert("Error: La hora de parada no puede ser igual a la hora de arranque.");
+      }
+
+      if (!f || !motivo) return alert("Faltan datos obligatorios (Fecha o Motivo)");
+      if (lote === "") lote = "x"; 
 
       const status = document.getElementById("status-incidencias");
       const btn = document.getElementById("btn-guardar-incidencia");
@@ -442,12 +512,69 @@
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          alert(res.mensaje);
-          document.getElementById("inc-lote").value = "";
-          document.getElementById("inc-obs").value = "";
+          incidenciasRecientes.push({
+            id: res.idUnico,
+            texto: `${hParada} a ${hArranque} | ${maqAfectada} | ${motivo} (Lote: ${lote})`
+          });
+          
+          if (incidenciasRecientes.length > 3) incidenciasRecientes.shift();
+          
+          renderizarIncidenciasRecientes();
+          limpiarFormularioIncidencias();
+          
         } else alert("Error: " + res.error);
       })
       .finally(() => { status.innerText = ""; btn.disabled = false; });
+    }
+
+    // --- BORRAR INCIDENCIA RECIENTE ---
+    function borrarIncidenciaLocal(idUnico) {
+      if (!confirm("¿Seguro que quieres eliminar esta incidencia de la base de datos?")) return;
+
+      const status = document.getElementById("status-incidencias");
+      status.innerText = "Borrando incidencia...";
+      
+      const datos = new URLSearchParams();
+      datos.append('accion', 'borrarIncidencia');
+      datos.append('maquina', MAQUINA_ACTUAL);
+      datos.append('idUnico', idUnico);
+
+      fetch(SCRIPT_URL, { method: 'POST', body: datos })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          incidenciasRecientes = incidenciasRecientes.filter(inc => inc.id !== idUnico);
+          renderizarIncidenciasRecientes();
+        } else {
+          alert("Error al borrar: " + res.error);
+        }
+      })
+      .finally(() => { status.innerText = ""; });
+    }
+
+    function renderizarIncidenciasRecientes() {
+      const contenedor = document.getElementById("contenedor-recientes");
+      const listaDiv = document.getElementById("lista-incidencias");
+      
+      if (incidenciasRecientes.length === 0) {
+        contenedor.classList.add("hidden");
+        listaDiv.innerHTML = "";
+        return;
+      }
+      
+      contenedor.classList.remove("hidden");
+      listaDiv.innerHTML = "";
+      
+      const invertidas = [...incidenciasRecientes].reverse();
+      
+      invertidas.forEach(inc => {
+        listaDiv.innerHTML += `
+          <div class="incidencia-item">
+            <span>${inc.texto}</span>
+            <button class="btn-borrar" onclick="borrarIncidenciaLocal('${inc.id}')" title="Borrar incidencia">🗑️</button>
+          </div>
+        `;
+      });
     }
   </script>
 </body>
