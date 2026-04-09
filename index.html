@@ -330,7 +330,336 @@
 
     function borrarInc(id){
       if(!confirm("¿Borrar?")) return;
+      fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams({accion:'borrarIncide<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Metales v5</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; color: var(--primary); }
+    #login-screen { position: fixed; inset: 0; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .login-card { background: white; padding: 30px; border-radius: 12px; width: 300px; text-align: center; }
+    header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-modulos { display: flex; background: #1a252f; }
+    .nav-modulos button { flex: 1; padding: 14px; border: none; background: none; color: #95a5a6; font-weight: bold; cursor: pointer; font-size: 13px; text-transform: uppercase; }
+    .nav-modulos button.active { color: white; background: var(--accent); }
+    .global-controls { background: white; padding: 15px; display: flex; gap: 20px; justify-content: center; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+    nav.tabs { display: flex; background: var(--secondary); overflow-x: auto; scrollbar-width: none; }
+    .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #bdc3c7; cursor: pointer; font-weight: 600; min-width: 100px; }
+    .tab-btn.active { color: white; border-bottom: 4px solid var(--accent); background: rgba(255,255,255,0.1); }
+    .container { padding: 20px; max-width: 700px; margin: auto; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .sub-tabs { display: flex; margin-bottom: 20px; gap: 10px; }
+    .sub-tab-btn { flex: 1; padding: 10px; border: 1px solid #ccc; background: #f8f9fa; cursor: pointer; font-weight: bold; border-radius: 6px; }
+    .sub-tab-btn.active { background: var(--primary); color: white; }
+    label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #555; }
+    input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; }
+    .btn-submit { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; box-shadow: 0 4px 0 #a04000; transition: all 0.2s; }
+    .btn-submit:active { transform: translateY(3px); box-shadow: 0 1px 0 #a04000; }
+    .btn-submit:disabled { background: #95a5a6; box-shadow: none; transform: none; cursor: not-allowed; opacity: 0.7; }
+    .btn-prueba-especial { background: var(--success); box-shadow: 0 4px 0 #1e8449; font-size: 18px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .hidden { display: none !important; }
+    .loader { text-align: center; color: var(--accent); font-weight: bold; padding: 10px; }
+    .incidencia-item { background: #f9f9f9; border: 1px solid #eee; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    .historial-fijo { background: #fff4e5; border: 1px solid #ffe0b2; padding: 10px; border-radius: 6px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+
+  <div id="login-screen">
+    <div class="login-card">
+      <h2 style="color:var(--primary);">METALES ACCESO</h2>
+      <input type="text" id="user" placeholder="Usuario">
+      <input type="password" id="pass" placeholder="Contraseña">
+      <button class="btn-submit" onclick="ejecutarLogin()" id="btn-login">CONECTAR</button>
+      <div id="login-status" class="loader"></div>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <h2 style="margin:0; font-size:18px">PANEL DE CONTROL</h2>
+      <span id="header-usuario" style="font-size: 13px;"></span>
+    </header>
+
+    <div class="nav-modulos">
+      <button id="nav-prod" class="active" onclick="cambiarModulo('produccion')">Producción</button>
+      <button id="nav-pruebas" onclick="cambiarModulo('pruebas')">Módulo Pruebas</button>
+    </div>
+
+    <div id="modulo-produccion">
+      <div class="global-controls">
+        <div>📅 <input type="date" id="g-fecha"></div>
+        <div>🕒 <select id="g-turno" onchange="actualizarDesplegablesHoras()"></select></div>
+      </div>
+      <nav class="tabs" id="tabs-maquinas"></nav>
+      <div class="container">
+        <h3 id="txt-maquina" style="text-align:center; color:var(--accent)">-</h3>
+        <div class="sub-tabs">
+          <button id="st-horas" class="sub-tab-btn active" onclick="setSeccion('horas')">DATOS PRODUCCIÓN</button>
+          <button id="st-inc" class="sub-tab-btn" onclick="setSeccion('inc')">INCIDENCIAS</button>
+        </div>
+
+        <div id="sec-horas" class="card">
+          <label>Nº LOTE</label><input type="text" id="p-lote" placeholder="Obligatorio" oninput="mod(1)">
+          <div id="form-std">
+            <div class="grid-2">
+              <div><label>Horas Inicio</label><input type="number" id="h-ini" readonly></div>
+              <div><label>Horas Fin</label><input type="number" id="h-fin" oninput="mod(1)"></div>
+            </div>
+            <button class="btn-submit" id="btn-env-std" onclick="enviarProd()">GUARDAR REGISTRO</button>
+          </div>
+          <div id="form-md" class="hidden">
+            <label>Operario</label><select id="md-op"></select>
+            <div class="grid-2">
+              <input type="number" id="md-hmi" readonly placeholder="H.Maq Ini"><input type="number" id="md-hmf" placeholder="H.Maq Fin" oninput="mod(1)">
+              <input type="number" id="md-hpi" readonly placeholder="H.Prod Ini"><input type="number" id="md-hpf" placeholder="H.Prod Fin" oninput="mod(1)">
+              <input type="number" id="md-ci" readonly placeholder="Cont. Ini"><input type="number" id="md-cf" placeholder="Cont. Fin" oninput="mod(1)">
+            </div>
+            <div class="grid-2">
+              <div><label>Saca FeSi</label><input type="number" id="md-fesi" placeholder="Nº saca" oninput="mod(1)"></div>
+              <div><label>Observaciones</label><input type="text" id="md-obs" placeholder="Notas..." oninput="mod(1)"></div>
+            </div>
+            <button class="btn-submit" id="btn-env-md" onclick="enviarMD()">GUARDAR MEDIOS DENSOS</button>
+          </div>
+        </div>
+
+        <div id="sec-inc" class="card hidden">
+          <div id="historial-anteriores" class="historial-fijo hidden">
+            <label style="color:#d35400">🕒 ÚLTIMAS 3 INCIDENCIAS (Turnos anteriores):</label>
+            <div id="lista-historial-fijo" style="font-size: 12px; margin-top:5px;"></div>
+          </div>
+          <label>Activo Afectado</label><select id="i-maq"></select>
+          <div class="grid-2">
+            <div><label>Parada</label><select id="i-h1" onchange="mod(2)"></select></div>
+            <div><label>Arranque</label><select id="i-h2" onchange="mod(2)"></select></div>
+          </div>
+          <label>Motivo</label><select id="i-mot"></select>
+          <input type="text" id="i-obs" placeholder="Notas..." oninput="mod(2)">
+          <button class="btn-submit" id="btn-env-inc" onclick="enviarInc()">GUARDAR INCIDENCIA</button>
+          <div id="lista-recientes" style="margin-top:20px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modulo-pruebas" class="hidden">
+      <div class="container">
+        <div class="card">
+          <h3 style="text-align: center;">REGISTRO DE PRUEBA</h3>
+          <label>PROVEEDOR</label><input type="text" id="pr-prov" oninput="mod(3)">
+          <div class="grid-2">
+            <div><label>Hora Inicio</label><select id="pr-h1" onchange="mod(3)"></select></div>
+            <div><label>Hora Fin</label><select id="pr-h2" onchange="mod(3)"></select></div>
+          </div>
+          <label>LÍNEA</label>
+          <select id="pr-linea"><option value="Finder">Finder</option><option value="Zurik">Zurik</option><option value="Steinert">Steinert</option><option value="Medios densos">Medios densos</option><option value="Molino">Molino</option></select>
+          <label>CAMPO 1</label><input type="text" id="pr-c1" oninput="mod(3)">
+          <label>CAMPO 2</label><input type="text" id="pr-c2" oninput="mod(3)">
+          <label>CAMPO 3</label><input type="text" id="pr-c3" oninput="mod(3)">
+          <label>CAMPO 4</label><input type="text" id="pr-c4" oninput="mod(3)">
+          <label>CAMPO 5</label><input type="text" id="pr-c5" oninput="mod(3)">
+          <button class="btn-submit btn-prueba-especial" id="btn-env-pr" onclick="enviarPrueba()">🚀 REGISTRAR PRUEBA</button>
+        </div>
+      </div>
+    </div>
+    <div id="global-loader" class="loader"></div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "TU_URL_AQUI";
+    let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
+
+    function mod(n){ MODS[n-1]=true; }
+
+    function ejecutarLogin(){
+      const u=document.getElementById("user").value, p=document.getElementById("pass").value;
+      if(!u || !p) return;
+      document.getElementById("login-status").innerText="Conectando...";
+      document.getElementById("btn-login").disabled = true;
+      
+      fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
+      .then(r=>r.json()).then(res=>{
+        if(res.success){
+          USER=res.user; ASSETS=res;
+          document.getElementById("login-screen").classList.add("hidden");
+          document.getElementById("app").classList.remove("hidden");
+          document.getElementById("header-usuario").innerText=USER.toUpperCase();
+          document.getElementById("g-fecha").valueAsDate=new Date();
+          poblar("g-turno", ["Mañana","Tarde","Noche"]);
+          poblar("tabs-maquinas", ["Finder","Zurik","Medios densos","Steinert"], true);
+          poblar("i-mot", res.motivos);
+          poblar("md-op", res.operarios);
+          actualizarDesplegablesHoras();
+          setMaq(null, "Finder");
+        } else { alert("Acceso denegado"); document.getElementById("btn-login").disabled = false; }
+      }).finally(()=>document.getElementById("login-status").innerText="");
+    }
+
+    function actualizarDesplegablesHoras(){
+      const t=document.getElementById("g-turno").value;
+      let h=t==='Mañana'?r(6,14):t==='Tarde'?r(14,22):r(22,23).concat(r(0,6));
+      const html=h.map(x=>`<option value="${x}">${x}</option>`).join("");
+      ["i-h1","i-h2","pr-h1","pr-h2"].forEach(id=>document.getElementById(id).innerHTML=html);
+    }
+
+    function r(s,e){
+      let res=[];
+      for(let i=s; i<=(e===23?23:e); i++){
+        for(let m=0; m<60; m+=10){
+          if(i===e && m>0 && e!==23) break;
+          res.push(i.toString().padStart(2,'0')+":"+m.toString().padStart(2,'0'));
+        }
+      }
+      if(e!==23) res.push(e.toString().padStart(2,'0')+":00");
+      return res;
+    }
+
+    function setMaq(e, m){
+      if((MODS[0]||MODS[1]) && !confirm("Hay cambios sin guardar. ¿Deseas continuar?")) return;
+      MAQ=m; MODS=[false,false,false];
+      if(e){
+        document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+        e.target.classList.add("active");
+      }
+      document.getElementById("txt-maquina").innerText = "MÁQUINA: " + m;
+      document.getElementById("form-std").classList.toggle("hidden", m==='Medios densos');
+      document.getElementById("form-md").classList.toggle("hidden", m!=='Medios densos');
+      poblar("i-maq", ASSETS["activos"+(m==='Medios densos'?'MD':m)]);
+      setSeccion('horas');
+      
+      document.getElementById("global-loader").innerText="Cargando datos...";
+      fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams({accion:'getHoras', maquina:m})})
+      .then(r=>r.json()).then(res=>{
+        if(m==='Medios densos'){
+          document.getElementById("md-hmi").value=res.hMaq; document.getElementById("md-hpi").value=res.hProd; document.getElementById("md-ci").value=res.cont;
+        } else document.getElementById("h-ini").value=res.horas;
+        
+        // Historial fijo
+        const hDiv = document.getElementById("lista-historial-fijo");
+        if(res.ultimasIncidencias && res.ultimasIncidencias.length > 0){
+          document.getElementById("historial-anteriores").classList.remove("hidden");
+          hDiv.innerHTML = res.ultimasIncidencias.map(txt => `<div style="padding:2px 0; border-bottom:1px solid #ffe0b2">• ${txt}</div>`).join("");
+        } else { document.getElementById("historial-anteriores").classList.add("hidden"); }
+      }).finally(()=>document.getElementById("global-loader").innerText="");
+    }
+
+    function setSeccion(s){
+      document.getElementById("sec-horas").classList.toggle("hidden", s!=='horas');
+      document.getElementById("sec-inc").classList.toggle("hidden", s!=='inc');
+      document.getElementById("st-horas").classList.toggle("active", s==='horas');
+      document.getElementById("st-inc").classList.toggle("active", s==='inc');
+    }
+
+    function cambiarModulo(m){
+      if(MODS.some(x=>x) && !confirm("¿Cambiar de pestaña sin guardar?")) return;
+      document.getElementById("modulo-produccion").classList.toggle("hidden", m!=='produccion');
+      document.getElementById("modulo-pruebas").classList.toggle("hidden", m!=='pruebas');
+      document.getElementById("nav-prod").classList.toggle("active", m==='produccion');
+      document.getElementById("nav-pruebas").classList.toggle("active", m==='pruebas');
+    }
+
+    function enviarProd(){
+      const btn = document.getElementById("btn-env-std");
+      const d={
+        accion:'guardarHoras', maquina:MAQ, usuario:USER, lote: document.getElementById("p-lote").value,
+        fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
+        horasIni: document.getElementById("h-ini").value, horasFin: document.getElementById("h-fin").value
+      };
+      if(!d.horasFin || !d.lote) return alert("Completa Lote y Horas Fin");
+      btn.disabled = true;
+      api(d, ()=>{ 
+        document.getElementById("h-fin").value=""; document.getElementById("p-lote").value=""; 
+        MODS[0]=false; setMaq(null, MAQ); 
+      }, btn);
+    }
+
+    function enviarMD(){
+      const btn = document.getElementById("btn-env-md");
+      const d={
+        accion:'guardarMD', operario:document.getElementById("md-op").value, lote:document.getElementById("p-lote").value,
+        fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value,
+        hMaqIni:document.getElementById("md-hmi").value, hMaqFin:document.getElementById("md-hmf").value,
+        hProdIni:document.getElementById("md-hpi").value, hProdFin:document.getElementById("md-hpf").value,
+        contIni:document.getElementById("md-ci").value, contFin:document.getElementById("md-cf").value,
+        fesi:document.getElementById("md-fesi").value, obs:document.getElementById("md-obs").value
+      };
+      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan campos obligatorios");
+      btn.disabled = true;
+      api(d, ()=>{ 
+        ["md-hmf","md-hpf","md-cf","md-fesi","md-obs","p-lote"].forEach(id=>document.getElementById(id).value="");
+        MODS[0]=false; setMaq(null, MAQ); 
+      }, btn);
+    }
+
+    function enviarInc(){
+      const btn = document.getElementById("btn-env-inc");
+      const d={
+        accion:'guardarIncidencia', maquina:MAQ, usuario:USER,
+        fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
+        horaParada: document.getElementById("i-h1").value, horaArranque: document.getElementById("i-h2").value,
+        motivo: document.getElementById("i-mot").value, maquinaAfectada: document.getElementById("i-maq").value,
+        observaciones: document.getElementById("i-obs").value
+      };
+      btn.disabled = true;
+      api(d, (res)=>{ 
+        INC_REC.push({id: res.idUnico, txt: `${d.horaParada}-${d.horaArranque} | ${d.motivo}`});
+        document.getElementById("i-obs").value=""; 
+        document.getElementById("i-h1").selectedIndex = 0;
+        document.getElementById("i-h2").selectedIndex = 0;
+        MODS[1]=false; dibujarRecientes(); 
+      }, btn);
+    }
+
+    function enviarPrueba(){
+      const btn = document.getElementById("btn-env-pr");
+      const d={
+        accion:'guardarPrueba', usuario:USER, fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
+        proveedor: document.getElementById("pr-prov").value, hInicio: document.getElementById("pr-h1").value, hFin: document.getElementById("pr-h2").value,
+        linea: document.getElementById("pr-linea").value, campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value,
+        campo3: document.getElementById("pr-c3").value, campo4: document.getElementById("pr-c4").value, campo5: document.getElementById("pr-c5").value
+      };
+      if(!d.proveedor) return alert("Escribe el proveedor");
+      btn.disabled = true;
+      api(d, ()=>{ 
+        ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5"].forEach(id=>document.getElementById(id).value="");
+        MODS[2]=false;
+      }, btn);
+    }
+
+    function api(p, cb, btn){
+      document.getElementById("global-loader").innerText="Enviando...";
+      fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
+      .then(r=>r.json()).then(res=>{
+        if(res.success){ alert(res.mensaje || "Hecho"); cb(res); }
+        else { alert("Error: "+res.error); if(btn) btn.disabled = false; }
+      }).catch(()=>{ alert("Error de red"); if(btn) btn.disabled = false; })
+      .finally(()=>document.getElementById("global-loader").innerText="");
+    }
+
+    function poblar(id, a, isTab=false){ 
+      const el = document.getElementById(id);
+      if(isTab) el.innerHTML = a.map(m=>`<button class="tab-btn ${m==='Finder'?'active':''}" onclick="setMaq(event,'${m}')">${m}</button>`).join("");
+      else el.innerHTML = a.map(x=>`<option value="${x}">${x}</option>`).join("");
+    }
+    
+    function dibujarRecientes(){
+      document.getElementById("lista-recientes").innerHTML="<h4>Nuevas (puedes borrar):</h4>" + [...INC_REC].reverse().map(i=>`
+        <div class="incidencia-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" style="background:red; color:white; border:none; border-radius:4px; padding:5px">🗑️</button></div>
+      `).join("");
+    }
+
+    function borrarInc(id){
+      if(!confirm("¿Borrar esta incidencia del Excel?")) return;
       fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams({accion:'borrarIncidencia', maquina:MAQ, idUnico:id})})
+      .then(()=>{ INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes(); });
+    }
+  </script>
+</body>
+</html>ncia', maquina:MAQ, idUnico:id})})
       .then(()=>{ INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes(); });
     }
   </script>
