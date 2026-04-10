@@ -221,7 +221,7 @@
       poblar("i-maq", ASSETS["activos"+(m==='Medios densos'?'MD':m)]);
       setSeccion('horas');
       
-      document.getElementById("global-loader").innerText="Sincronizando datos...";
+      document.getElementById("global-loader").innerText="No es que sea impaciente, es que el mundo va demasiado lento para mí";
       fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams({accion:'getHoras', maquina:m})})
       .then(r=>r.json()).then(res=>{
         if(m==='Medios densos'){
