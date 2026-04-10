@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4.2</title>
+  <title>App Metales v4.4</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
@@ -157,25 +157,17 @@
 
           <hr style="margin:15px 0; border:0; border-top:1px solid #eee">
           
-          <div id="group-c1">
-            <label id="lbl-c1">CAMPO 1</label>
-            <input type="text" id="pr-c1" oninput="mod(3)">
+          <div class="grid-2">
+            <div id="group-c1"><label id="lbl-c1">CAMPO 1</label><input type="text" id="pr-c1" oninput="mod(3)"></div>
+            <div id="group-c2"><label id="lbl-c2">CAMPO 2</label><input type="text" id="pr-c2" oninput="mod(3)"></div>
           </div>
-          <div id="group-c2">
-            <label id="lbl-c2">CAMPO 2</label>
-            <input type="text" id="pr-c2" oninput="mod(3)">
+          <div class="grid-2">
+            <div id="group-c3"><label id="lbl-c3">CAMPO 3</label><input type="text" id="pr-c3" oninput="mod(3)"></div>
+            <div id="group-c4"><label id="lbl-c4">CAMPO 4</label><input type="text" id="pr-c4" oninput="mod(3)"></div>
           </div>
-          <div id="group-c3">
-            <label id="lbl-c3">CAMPO 3</label>
-            <input type="text" id="pr-c3" oninput="mod(3)">
-          </div>
-          <div id="group-c4">
-            <label id="lbl-c4">CAMPO 4</label>
-            <input type="text" id="pr-c4" oninput="mod(3)">
-          </div>
-          <div id="group-c5">
-            <label id="lbl-c5">CAMPO 5</label>
-            <input type="text" id="pr-c5" oninput="mod(3)">
+          <div class="grid-2">
+            <div id="group-c5"><label id="lbl-c5">CAMPO 5</label><input type="text" id="pr-c5" oninput="mod(3)"></div>
+            <div id="group-c6"><label id="lbl-c6">CAMPO 6</label><input type="text" id="pr-c6" oninput="mod(3)"></div>
           </div>
 
           <button class="btn-submit" onclick="enviarPrueba()">🚀 REGISTRAR PRUEBA</button>
@@ -186,7 +178,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzIJEap6AyqCqZID3-9nyVXjLdrjPI3WGAJgxxr0CjdZZf3ntQ9skLOv2m8uRVESjx/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztp4mAXKzYaDAM35QAJ0-5-YkzrjhwcnXp8h7RvAuabsYwu99Jv7i49xXUoJfcrWmg/exec";
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
 
     function mod(n){ MODS[n-1]=true; }
@@ -210,6 +202,7 @@
           poblar("md-op", res.operarios);
           actualizarDesplegablesHoras();
           setMaq(null, "Finder");
+          actualizarEtiquetasPrueba(); // Inicializar etiquetas módulo pruebas
         } else alert("Error de login");
       }).finally(()=>document.getElementById("login-status").innerText="");
     }
@@ -279,19 +272,44 @@
 
     function actualizarEtiquetasPrueba() {
       const linea = document.getElementById("pr-linea").value;
-      if (linea === "Medios densos") {
+      const ids = ["c1","c2","c3","c4","c5","c6"];
+      
+      // Reset visibilidad inicial (mostrar todos)
+      ids.forEach(id => document.getElementById("group-"+id).classList.remove("hidden"));
+
+      if (linea === "Finder") {
+        document.getElementById("lbl-c1").innerText = "MM";
+        document.getElementById("lbl-c2").innerText = "FE";
+        document.getElementById("lbl-c3").innerText = "MA";
+        document.getElementById("lbl-c4").innerText = "INOX";
+        document.getElementById("lbl-c5").innerText = "MERMA 1";
+        document.getElementById("lbl-c6").innerText = "MERMA 2";
+      } else if (linea === "Medios densos") {
         document.getElementById("lbl-c1").innerText = "ALUMINIO";
         document.getElementById("lbl-c2").innerText = "HEAVIES";
         document.getElementById("lbl-c3").innerText = "LIGEROS";
         document.getElementById("lbl-c4").innerText = "LARGOS";
         document.getElementById("group-c5").classList.add("hidden");
+        document.getElementById("group-c6").classList.add("hidden");
+      } else if (linea === "Steinert") {
+        document.getElementById("lbl-c1").innerText = "MM";
+        document.getElementById("lbl-c2").innerText = "FE";
+        document.getElementById("lbl-c3").innerText = "MA";
+        document.getElementById("group-c4").classList.add("hidden");
+        document.getElementById("group-c5").classList.add("hidden");
+        document.getElementById("group-c6").classList.add("hidden");
+      } else if (linea === "Zurik") {
+        document.getElementById("lbl-c1").innerText = "MERMA 1";
+        document.getElementById("lbl-c2").innerText = "MERMA 2";
+        document.getElementById("lbl-c3").innerText = "MA";
+        document.getElementById("group-c4").classList.add("hidden");
+        document.getElementById("group-c5").classList.add("hidden");
+        document.getElementById("group-c6").classList.add("hidden");
       } else {
-        document.getElementById("lbl-c1").innerText = "CAMPO 1";
-        document.getElementById("lbl-c2").innerText = "CAMPO 2";
-        document.getElementById("lbl-c3").innerText = "CAMPO 3";
-        document.getElementById("lbl-c4").innerText = "CAMPO 4";
-        document.getElementById("group-c5").classList.remove("hidden");
-        document.getElementById("lbl-c5").innerText = "CAMPO 5";
+        // Genérico (ej. Molino u otros)
+        ids.forEach((id, index) => {
+          document.getElementById("lbl-"+id).innerText = "CAMPO " + (index + 1);
+        });
       }
     }
 
@@ -364,11 +382,11 @@
         linea: document.getElementById("pr-linea").value, 
         campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value,
         campo3: document.getElementById("pr-c3").value, campo4: document.getElementById("pr-c4").value,
-        campo5: document.getElementById("pr-c5").value
+        campo5: document.getElementById("pr-c5").value, campo6: document.getElementById("pr-c6").value
       };
       if(!d.proveedor) return alert("Falta el proveedor");
       api(d, ()=>{ 
-        ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5"].forEach(id=>document.getElementById(id).value=""); 
+        ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5","pr-c6"].forEach(id=>document.getElementById(id).value=""); 
         MODS[2]=false; 
       });
     }
