@@ -167,7 +167,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAjCP_H924alfpq8jkBSnu-YuOmrRWvrn6MPoKMzHrRX--c3OkoGk53RT1yBboCQAP/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIzc4sIzkbo3vPQ6pX4c4CRf3TDFfxwjPUQi9G4_VcRZYUrDi5bMIi30NHqTaUofxa/exec";
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
 
     function mod(n){ MODS[n-1]=true; }
@@ -270,6 +270,30 @@
       };
       if(!d.horasFin || !d.lote) return alert("Faltan datos");
       api(d, ()=>{ document.getElementById("h-fin").value=""; document.getElementById("p-lote").value=""; MODS[0]=false; setMaq(null, MAQ); });
+    }
+
+    function enviarMD(){
+      const d={
+        accion:'guardarMD', maquina:MAQ, usuario:USER,
+        fecha: document.getElementById("g-fecha").value,
+        turno: document.getElementById("g-turno").value,
+        operario: document.getElementById("md-op").value,
+        hMaqIni: document.getElementById("md-hmi").value,
+        hMaqFin: document.getElementById("md-hmf").value,
+        hProdIni: document.getElementById("md-hpi").value,
+        hProdFin: document.getElementById("md-hpf").value,
+        contIni: document.getElementById("md-ci").value,
+        contFin: document.getElementById("md-cf").value,
+        fesi: document.getElementById("md-obs").value,
+        obs: document.getElementById("md-obs").value,
+        lote: document.getElementById("p-lote").value
+      };
+      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos en Medios Densos");
+      api(d, ()=>{ 
+        ["md-hmf","md-hpf","md-cf","md-obs","p-lote"].forEach(id=>document.getElementById(id).value=""); 
+        MODS[0]=false; 
+        setMaq(null, MAQ); 
+      });
     }
 
     function enviarInc(){
