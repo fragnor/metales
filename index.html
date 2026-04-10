@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4.1</title>
+  <title>App Metales v4.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
@@ -140,18 +140,45 @@
           <h3 style="margin-top:0; color:var(--primary); text-align: center;">REGISTRO DE PRUEBA</h3>
           <label>PROVEEDOR / ORIGEN</label>
           <input type="text" id="pr-prov" placeholder="Nombre..." oninput="mod(3)">
+          
           <div class="grid-2">
             <div><label>Hora Inicio</label><select id="pr-h1" onchange="mod(3)"></select></div>
             <div><label>Hora Fin</label><select id="pr-h2" onchange="mod(3)"></select></div>
           </div>
-          <label>LÍNEA</label>
-          <select id="pr-linea">
-            <option value="Finder">Finder</option><option value="Zurik">Zurik</option>
-            <option value="Steinert">Steinert</option><option value="Medios densos">Medios densos</option><option value="Molino">Molino</option>
+
+          <label>LÍNEA DE PROCESO</label>
+          <select id="pr-linea" onchange="actualizarEtiquetasPrueba()">
+            <option value="Finder">Finder</option>
+            <option value="Zurik">Zurik</option>
+            <option value="Steinert">Steinert</option>
+            <option value="Medios densos">Medios densos</option>
+            <option value="Molino">Molino</option>
           </select>
-          <label>C1</label><input type="text" id="pr-c1" oninput="mod(3)">
-          <label>C2</label><input type="text" id="pr-c2" oninput="mod(3)">
-          <button class="btn-submit" onclick="enviarPrueba()">REGISTRAR PRUEBA</button>
+
+          <hr style="margin:15px 0; border:0; border-top:1px solid #eee">
+          
+          <div id="group-c1">
+            <label id="lbl-c1">CAMPO 1</label>
+            <input type="text" id="pr-c1" oninput="mod(3)">
+          </div>
+          <div id="group-c2">
+            <label id="lbl-c2">CAMPO 2</label>
+            <input type="text" id="pr-c2" oninput="mod(3)">
+          </div>
+          <div id="group-c3">
+            <label id="lbl-c3">CAMPO 3</label>
+            <input type="text" id="pr-c3" oninput="mod(3)">
+          </div>
+          <div id="group-c4">
+            <label id="lbl-c4">CAMPO 4</label>
+            <input type="text" id="pr-c4" oninput="mod(3)">
+          </div>
+          <div id="group-c5">
+            <label id="lbl-c5">CAMPO 5</label>
+            <input type="text" id="pr-c5" oninput="mod(3)">
+          </div>
+
+          <button class="btn-submit" onclick="enviarPrueba()">🚀 REGISTRAR PRUEBA</button>
         </div>
       </div>
     </div>
@@ -167,7 +194,7 @@
     function ejecutarLogin(){
       const u=document.getElementById("user").value, p=document.getElementById("pass").value;
       if(!u || !p) return;
-      document.getElementById("login-status").innerText="Paciencia… o reinicia, tú decides.";
+      document.getElementById("login-status").innerText="Autenticando...";
       fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
       .then(r=>r.json()).then(res=>{
         if(res.success){
@@ -221,7 +248,7 @@
       poblar("i-maq", ASSETS["activos"+(m==='Medios densos'?'MD':m)]);
       setSeccion('horas');
       
-      document.getElementById("global-loader").innerText="No es que sea impaciente, es que el mundo va demasiado lento para mí";
+      document.getElementById("global-loader").innerText="Sincronizando datos...";
       fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams({accion:'getHoras', maquina:m})})
       .then(r=>r.json()).then(res=>{
         if(m==='Medios densos'){
@@ -250,6 +277,24 @@
       `).join("");
     }
 
+    function actualizarEtiquetasPrueba() {
+      const linea = document.getElementById("pr-linea").value;
+      if (linea === "Medios densos") {
+        document.getElementById("lbl-c1").innerText = "ALUMINIO";
+        document.getElementById("lbl-c2").innerText = "HEAVIES";
+        document.getElementById("lbl-c3").innerText = "LIGEROS";
+        document.getElementById("lbl-c4").innerText = "LARGOS";
+        document.getElementById("group-c5").classList.add("hidden");
+      } else {
+        document.getElementById("lbl-c1").innerText = "CAMPO 1";
+        document.getElementById("lbl-c2").innerText = "CAMPO 2";
+        document.getElementById("lbl-c3").innerText = "CAMPO 3";
+        document.getElementById("lbl-c4").innerText = "CAMPO 4";
+        document.getElementById("group-c5").classList.remove("hidden");
+        document.getElementById("lbl-c5").innerText = "CAMPO 5";
+      }
+    }
+
     function setSeccion(s){
       document.getElementById("sec-horas").classList.toggle("hidden", s!=='horas');
       document.getElementById("sec-inc").classList.toggle("hidden", s!=='inc');
@@ -261,6 +306,8 @@
       if(MODS.some(x=>x) && !confirm("Hay datos escritos. ¿Cambiar?")) return;
       document.getElementById("modulo-produccion").classList.toggle("hidden", m!=='produccion');
       document.getElementById("modulo-pruebas").classList.toggle("hidden", m!=='pruebas');
+      document.getElementById("nav-prod").classList.toggle("active", m==='produccion');
+      document.getElementById("nav-pruebas").classList.toggle("active", m==='pruebas');
     }
 
     function enviarProd(){
@@ -314,9 +361,16 @@
         accion:'guardarPrueba', usuario:USER, fecha: document.getElementById("g-fecha").value,
         turno: document.getElementById("g-turno").value, proveedor: document.getElementById("pr-prov").value,
         hInicio: document.getElementById("pr-h1").value, hFin: document.getElementById("pr-h2").value,
-        linea: document.getElementById("pr-linea").value, campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value
+        linea: document.getElementById("pr-linea").value, 
+        campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value,
+        campo3: document.getElementById("pr-c3").value, campo4: document.getElementById("pr-c4").value,
+        campo5: document.getElementById("pr-c5").value
       };
-      api(d, ()=>{ ["pr-prov","pr-c1","pr-c2"].forEach(id=>document.getElementById(id).value=""); MODS[2]=false; });
+      if(!d.proveedor) return alert("Falta el proveedor");
+      api(d, ()=>{ 
+        ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5"].forEach(id=>document.getElementById(id).value=""); 
+        MODS[2]=false; 
+      });
     }
 
     function api(p, cb){
