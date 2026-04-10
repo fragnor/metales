@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4</title>
+  <title>App Metales v4.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
@@ -40,17 +40,11 @@
 
     .btn-submit { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; box-shadow: 0 4px 0 #a04000; transition: all 0.2s; }
     .btn-submit:active { transform: translateY(3px); box-shadow: 0 1px 0 #a04000; }
-    .btn-submit:disabled { background: #bdc3c7; box-shadow: none; cursor: not-allowed; }
-
-    /* Botón Pruebas Especial */
-    .btn-prueba-especial { background: var(--success); box-shadow: 0 4px 0 #1e8449; font-size: 18px; letter-spacing: 1px; }
-    .btn-prueba-especial:hover { background: #2ecc71; }
 
     .hidden { display: none !important; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .loader { text-align: center; color: var(--accent); font-weight: bold; padding: 10px; font-size: 14px; }
 
-    /* Recientes */
     .incidencia-item { background: #f9f9f9; border: 1px solid #eee; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
   </style>
 </head>
@@ -129,6 +123,12 @@
           <label>Motivo</label><select id="i-mot"></select>
           <input type="text" id="i-obs" placeholder="Notas..." oninput="mod(2)">
           <button class="btn-submit" onclick="enviarInc()">GUARDAR INCIDENCIA</button>
+          
+          <div id="historial-container" style="margin-top:25px; border-top: 2px solid #eee; padding-top: 15px;">
+            <h4 style="margin:0 0 10px 0; color: var(--secondary); font-size: 14px; text-transform: uppercase;">🕒 Últimas 3 incidencias (Historial)</h4>
+            <div id="lista-historial"></div>
+          </div>
+
           <div id="lista-recientes" style="margin-top:20px"></div>
         </div>
       </div>
@@ -137,40 +137,29 @@
     <div id="modulo-pruebas" class="hidden">
       <div class="container">
         <div class="card">
-          <h3 style="margin-top:0; color:var(--primary); text-align: center;">REGISTRO DE PRUEBA DE MATERIAL</h3>
-          
+          <h3 style="margin-top:0; color:var(--primary); text-align: center;">REGISTRO DE PRUEBA</h3>
           <label>PROVEEDOR / ORIGEN</label>
-          <input type="text" id="pr-prov" placeholder="Nombre del proveedor..." oninput="mod(3)">
-
+          <input type="text" id="pr-prov" placeholder="Nombre..." oninput="mod(3)">
           <div class="grid-2">
-            <div><label>Hora Inicio Prueba</label><select id="pr-h1" onchange="mod(3)"></select></div>
-            <div><label>Hora Fin Prueba</label><select id="pr-h2" onchange="mod(3)"></select></div>
+            <div><label>Hora Inicio</label><select id="pr-h1" onchange="mod(3)"></select></div>
+            <div><label>Hora Fin</label><select id="pr-h2" onchange="mod(3)"></select></div>
           </div>
-
-          <label>LÍNEA DE PROCESO</label>
+          <label>LÍNEA</label>
           <select id="pr-linea">
             <option value="Finder">Finder</option><option value="Zurik">Zurik</option>
             <option value="Steinert">Steinert</option><option value="Medios densos">Medios densos</option><option value="Molino">Molino</option>
           </select>
-
-          <hr style="margin:20px 0; border:0; border-top:1px solid #eee">
-          
-          <label>CAMPO 1</label><input type="text" id="pr-c1" oninput="mod(3)">
-          <label>CAMPO 2</label><input type="text" id="pr-c2" oninput="mod(3)">
-          <label>CAMPO 3</label><input type="text" id="pr-c3" oninput="mod(3)">
-          <label>CAMPO 4</label><input type="text" id="pr-c4" oninput="mod(3)">
-          <label>CAMPO 5</label><input type="text" id="pr-c5" oninput="mod(3)">
-
-          <button class="btn-submit btn-prueba-especial" id="btn-pr" onclick="enviarPrueba()">🚀 REGISTRAR PRUEBA</button>
+          <label>C1</label><input type="text" id="pr-c1" oninput="mod(3)">
+          <label>C2</label><input type="text" id="pr-c2" oninput="mod(3)">
+          <button class="btn-submit" onclick="enviarPrueba()">REGISTRAR PRUEBA</button>
         </div>
       </div>
     </div>
-
     <div id="global-loader" class="loader"></div>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBTSBh3Vg6LpZPAeQoU_jA2t3Cf3ygUrlgTS8oW4J_50RFzzEVmQCwr7pXcC-_a4n5/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzIJEap6AyqCqZID3-9nyVXjLdrjPI3WGAJgxxr0CjdZZf3ntQ9skLOv2m8uRVESjx/exec";
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
 
     function mod(n){ MODS[n-1]=true; }
@@ -179,7 +168,6 @@
       const u=document.getElementById("user").value, p=document.getElementById("pass").value;
       if(!u || !p) return;
       document.getElementById("login-status").innerText="Autenticando...";
-      
       fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
       .then(r=>r.json()).then(res=>{
         if(res.success){
@@ -188,13 +176,9 @@
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("header-usuario").innerText=USER.toUpperCase();
           document.getElementById("g-fecha").valueAsDate=new Date();
-          
-          const t=["Mañana","Tarde","Noche"];
-          document.getElementById("g-turno").innerHTML=t.map(x=>`<option value="${x}">${x}</option>`).join("");
-          
+          poblar("g-turno", ["Mañana","Tarde","Noche"]);
           const mqs=["Finder","Zurik","Medios densos","Steinert"];
           document.getElementById("tabs-maquinas").innerHTML=mqs.map(m=>`<button class="tab-btn ${m==='Finder'?'active':''}" onclick="setMaq(event,'${m}')">${m}</button>`).join("");
-          
           poblar("i-mot", res.motivos);
           poblar("md-op", res.operarios);
           actualizarDesplegablesHoras();
@@ -225,7 +209,8 @@
 
     function setMaq(e, m){
       if((MODS[0]||MODS[1]) && !confirm("Cambios sin guardar. ¿Salir?")) return;
-      MAQ=m; MODS=[false,false,false];
+      MAQ=m; MODS=[false,false,false]; INC_REC=[];
+      document.getElementById("lista-recientes").innerHTML = "";
       if(e){
         document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
         e.target.classList.add("active");
@@ -236,7 +221,7 @@
       poblar("i-maq", ASSETS["activos"+(m==='Medios densos'?'MD':m)]);
       setSeccion('horas');
       
-      document.getElementById("global-loader").innerText="Sincronizando horas...";
+      document.getElementById("global-loader").innerText="Sincronizando datos...";
       fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams({accion:'getHoras', maquina:m})})
       .then(r=>r.json()).then(res=>{
         if(m==='Medios densos'){
@@ -244,7 +229,25 @@
           document.getElementById("md-hpi").value=res.hProd;
           document.getElementById("md-ci").value=res.cont;
         } else document.getElementById("h-ini").value=res.horas;
+        dibujarHistorial(res.ultimasInc);
       }).finally(()=>document.getElementById("global-loader").innerText="");
+    }
+
+    function dibujarHistorial(lista) {
+      const div = document.getElementById("lista-historial");
+      if (!lista || lista.length === 0) {
+        div.innerHTML = "<p style='font-size:12px; color:gray;'>No hay incidencias previas.</p>";
+        return;
+      }
+      div.innerHTML = lista.map(inc => `
+        <div style="background:#fff; border-left:4px solid #bdc3c7; padding:10px; margin-bottom:8px; font-size:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1)">
+          <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent)">
+            <span>⚠️ ${inc.motivo}</span><span>⏱️ ${inc.horas}h</span>
+          </div>
+          <div><b>Activo:</b> ${inc.activo}</div>
+          <div style="font-style:italic; color:#666">"${inc.obs || 'Sin notas'}"</div>
+        </div>
+      `).join("");
     }
 
     function setSeccion(s){
@@ -255,11 +258,9 @@
     }
 
     function cambiarModulo(m){
-      if(MODS.some(x=>x) && !confirm("Hay datos escritos. ¿Seguro que quieres cambiar de pestaña?")) return;
+      if(MODS.some(x=>x) && !confirm("Hay datos escritos. ¿Cambiar?")) return;
       document.getElementById("modulo-produccion").classList.toggle("hidden", m!=='produccion');
       document.getElementById("modulo-pruebas").classList.toggle("hidden", m!=='pruebas');
-      document.getElementById("nav-prod").classList.toggle("active", m==='produccion');
-      document.getElementById("nav-pruebas").classList.toggle("active", m==='pruebas');
     }
 
     function enviarProd(){
@@ -281,71 +282,45 @@
         fecha: document.getElementById("g-fecha").value,
         turno: document.getElementById("g-turno").value,
         operario: document.getElementById("md-op").value,
-        hMaqIni: document.getElementById("md-hmi").value,
-        hMaqFin: document.getElementById("md-hmf").value,
-        hProdIni: document.getElementById("md-hpi").value,
-        hProdFin: document.getElementById("md-hpf").value,
-        contIni: document.getElementById("md-ci").value,
-        contFin: document.getElementById("md-cf").value,
-        fesi: document.getElementById("md-fesi").value,
-        obs: document.getElementById("md-obs").value,
-        lote: document.getElementById("p-lote").value
+        hMaqIni: document.getElementById("md-hmi").value, hMaqFin: document.getElementById("md-hmf").value,
+        hProdIni: document.getElementById("md-hpi").value, hProdFin: document.getElementById("md-hpf").value,
+        contIni: document.getElementById("md-ci").value, contFin: document.getElementById("md-cf").value,
+        fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value
       };
-      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos en Medios Densos");
+      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos");
       api(d, ()=>{ 
         ["md-hmf","md-hpf","md-cf","md-fesi","md-obs","p-lote"].forEach(id=>document.getElementById(id).value=""); 
-        MODS[0]=false; 
-        setMaq(null, MAQ); 
+        MODS[0]=false; setMaq(null, MAQ); 
       });
     }
 
     function enviarInc(){
       const d={
         accion:'guardarIncidencia', maquina:MAQ, usuario:USER,
-        fecha: document.getElementById("g-fecha").value,
-        turno: document.getElementById("g-turno").value,
-        horaParada: document.getElementById("i-h1").value,
-        horaArranque: document.getElementById("i-h2").value,
-        motivo: document.getElementById("i-mot").value,
-        maquinaAfectada: document.getElementById("i-maq").value,
-        observaciones: document.getElementById("i-obs").value
+        fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
+        horaParada: document.getElementById("i-h1").value, horaArranque: document.getElementById("i-h2").value,
+        motivo: document.getElementById("i-mot").value, maquinaAfectada: document.getElementById("i-maq").value, observaciones: document.getElementById("i-obs").value
       };
       api(d, (res)=>{ 
         INC_REC.push({id: res.idUnico, txt: `${d.horaParada}-${d.horaArranque} | ${d.motivo}`});
-        
-        // RESET DE CAMPOS TRAS GUARDADO
         ["i-obs"].forEach(id => document.getElementById(id).value = "");
-        ["i-h1", "i-h2", "i-mot", "i-maq"].forEach(id => {
-          document.getElementById(id).selectedIndex = 0;
-        });
-
-        MODS[1]=false; 
-        dibujarRecientes();
+        ["i-h1", "i-h2", "i-mot", "i-maq"].forEach(id => document.getElementById(id).selectedIndex = 0);
+        MODS[1]=false; dibujarRecientes();
       });
     }
 
     function enviarPrueba(){
       const d={
-        accion:'guardarPrueba', usuario:USER,
-        fecha: document.getElementById("g-fecha").value,
-        turno: document.getElementById("g-turno").value,
-        proveedor: document.getElementById("pr-prov").value,
-        hInicio: document.getElementById("pr-h1").value,
-        hFin: document.getElementById("pr-h2").value,
-        linea: document.getElementById("pr-linea").value,
-        campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value,
-        campo3: document.getElementById("pr-c3").value, campo4: document.getElementById("pr-c4").value,
-        campo5: document.getElementById("pr-c5").value
+        accion:'guardarPrueba', usuario:USER, fecha: document.getElementById("g-fecha").value,
+        turno: document.getElementById("g-turno").value, proveedor: document.getElementById("pr-prov").value,
+        hInicio: document.getElementById("pr-h1").value, hFin: document.getElementById("pr-h2").value,
+        linea: document.getElementById("pr-linea").value, campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value
       };
-      if(!d.proveedor) return alert("Escribe el proveedor");
-      api(d, ()=>{ 
-        ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5"].forEach(id=>document.getElementById(id).value="");
-        MODS[2]=false;
-      });
+      api(d, ()=>{ ["pr-prov","pr-c1","pr-c2"].forEach(id=>document.getElementById(id).value=""); MODS[2]=false; });
     }
 
     function api(p, cb){
-      document.getElementById("global-loader").innerText="Enviando al servidor...";
+      document.getElementById("global-loader").innerText="Enviando...";
       fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
       .then(r=>r.json()).then(res=>{
         if(res.success){ alert(res.mensaje || "Hecho"); cb(res); }
@@ -358,7 +333,7 @@
     function dibujarRecientes(){
       const div=document.getElementById("lista-recientes");
       div.innerHTML="<h4>Guardadas ahora:</h4>" + INC_REC.map(i=>`
-        <div class="incidencia-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" style="background:red; color:white; border:none; border-radius:4px; cursor:pointer">X</button></div>
+        <div class="incidencia-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" style="background:red; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer">X</button></div>
       `).join("");
     }
 
