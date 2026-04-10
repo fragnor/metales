@@ -170,7 +170,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLue0xo4lAhuAVw43Z-mjBKP46uYAJz1IXf7JmiqiUo6M6R5ZtHO3h-viz_80TmiRN/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBTSBh3Vg6LpZPAeQoU_jA2t3Cf3ygUrlgTS8oW4J_50RFzzEVmQCwr7pXcC-_a4n5/exec";
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
 
     function mod(n){ MODS[n-1]=true; }
@@ -312,7 +312,14 @@
       };
       api(d, (res)=>{ 
         INC_REC.push({id: res.idUnico, txt: `${d.horaParada}-${d.horaArranque} | ${d.motivo}`});
-        document.getElementById("i-obs").value=""; MODS[1]=false; 
+        
+        // RESET DE CAMPOS TRAS GUARDADO
+        ["i-obs"].forEach(id => document.getElementById(id).value = "");
+        ["i-h1", "i-h2", "i-mot", "i-maq"].forEach(id => {
+          document.getElementById(id).selectedIndex = 0;
+        });
+
+        MODS[1]=false; 
         dibujarRecientes();
       });
     }
