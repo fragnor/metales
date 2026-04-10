@@ -167,7 +167,7 @@
     function ejecutarLogin(){
       const u=document.getElementById("user").value, p=document.getElementById("pass").value;
       if(!u || !p) return;
-      document.getElementById("login-status").innerText="Autenticando...";
+      document.getElementById("login-status").innerText="Paciencia… o reinicia, tú decides.";
       fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
       .then(r=>r.json()).then(res=>{
         if(res.success){
