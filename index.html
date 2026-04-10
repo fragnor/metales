@@ -112,7 +112,10 @@
               <input type="number" id="md-hpi" readonly><input type="number" id="md-hpf" placeholder="H. Prod Fin" oninput="mod(1)">
               <input type="number" id="md-ci" readonly><input type="number" id="md-cf" placeholder="Cont. Fin" oninput="mod(1)">
             </div>
-            <input type="text" id="md-obs" placeholder="Fesi / Observaciones" oninput="mod(1)">
+            <div class="grid-2">
+              <div><label>Nº Saca FeSi</label><input type="text" id="md-fesi" placeholder="Nº Saca..." oninput="mod(1)"></div>
+              <div><label>Observaciones</label><input type="text" id="md-obs" placeholder="Observaciones..." oninput="mod(1)"></div>
+            </div>
             <button class="btn-submit" onclick="enviarMD()">GUARDAR MEDIOS DENSOS</button>
           </div>
         </div>
@@ -167,7 +170,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIzc4sIzkbo3vPQ6pX4c4CRf3TDFfxwjPUQi9G4_VcRZYUrDi5bMIi30NHqTaUofxa/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLue0xo4lAhuAVw43Z-mjBKP46uYAJz1IXf7JmiqiUo6M6R5ZtHO3h-viz_80TmiRN/exec";
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
 
     function mod(n){ MODS[n-1]=true; }
@@ -284,13 +287,13 @@
         hProdFin: document.getElementById("md-hpf").value,
         contIni: document.getElementById("md-ci").value,
         contFin: document.getElementById("md-cf").value,
-        fesi: document.getElementById("md-obs").value,
+        fesi: document.getElementById("md-fesi").value,
         obs: document.getElementById("md-obs").value,
         lote: document.getElementById("p-lote").value
       };
       if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos en Medios Densos");
       api(d, ()=>{ 
-        ["md-hmf","md-hpf","md-cf","md-obs","p-lote"].forEach(id=>document.getElementById(id).value=""); 
+        ["md-hmf","md-hpf","md-cf","md-fesi","md-obs","p-lote"].forEach(id=>document.getElementById(id).value=""); 
         MODS[0]=false; 
         setMaq(null, MAQ); 
       });
