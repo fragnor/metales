@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4.4</title>
+  <title>App Metales v4.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
@@ -40,12 +40,21 @@
 
     .btn-submit { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; box-shadow: 0 4px 0 #a04000; transition: all 0.2s; }
     .btn-submit:active { transform: translateY(3px); box-shadow: 0 1px 0 #a04000; }
+    .btn-submit:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; transform: none; }
 
     .hidden { display: none !important; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .loader { text-align: center; color: var(--accent); font-weight: bold; padding: 10px; font-size: 14px; }
 
-    .incidencia-item { background: #f9f9f9; border: 1px solid #eee; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    /* Listas de Producción */
+    .prod-list-container { margin-top: 25px; border-top: 2px solid #eee; padding-top: 15px; }
+    .prod-item { background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+    .prod-info { flex-grow: 1; }
+    .prod-btns { display: flex; gap: 8px; }
+    .btn-edit { background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+    .btn-delete { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+    .btn-delete:disabled, .btn-edit:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .badge-prev { background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -73,8 +82,8 @@
 
     <div id="modulo-produccion">
       <div class="global-controls">
-        <div>📅 <input type="date" id="g-fecha"></div>
-        <div>🕒 <select id="g-turno" onchange="actualizarDesplegablesHoras()"></select></div>
+        <div>📅 <input type="date" id="g-fecha" onchange="sincronizarTodo()"></div>
+        <div>🕒 <select id="g-turno" onchange="sincronizarTodo()"></select></div>
       </div>
 
       <nav class="tabs" id="tabs-maquinas"></nav>
@@ -88,29 +97,39 @@
         </div>
 
         <div id="sec-horas" class="card">
+          <input type="hidden" id="p-id">
           <label>Nº LOTE / REFERENCIA</label>
           <input type="text" id="p-lote" placeholder="Lote obligatorio..." oninput="mod(1)">
           
           <div id="form-std">
             <div class="grid-2">
-              <div class="form-group"><label>Horas Inicio</label><input type="number" id="h-ini" readonly></div>
-              <div class="form-group"><label>Horas Fin</label><input type="number" id="h-fin" oninput="mod(1)"></div>
+              <div class="form-group"><label>Horas Inicio</label><input type="number" step="0.01" id="h-ini"></div>
+              <div class="form-group"><label>Horas Fin</label><input type="number" step="0.01" id="h-fin" oninput="mod(1)"></div>
             </div>
-            <button class="btn-submit" onclick="enviarProd()">GUARDAR REGISTRO</button>
+            <button class="btn-submit" id="btn-env-std" onclick="enviarProd()">GUARDAR REGISTRO</button>
+            <button class="btn-submit hidden" id="btn-canc-edit" onclick="cancelarEdicion()" style="background:#7f8c8d; box-shadow:0 4px 0 #636e72; margin-top:10px">CANCELAR EDICIÓN</button>
           </div>
 
           <div id="form-md" class="hidden">
             <label>Operario</label><select id="md-op"></select>
             <div class="grid-2">
-              <input type="number" id="md-hmi" readonly><input type="number" id="md-hmf" placeholder="H. Maq Fin" oninput="mod(1)">
-              <input type="number" id="md-hpi" readonly><input type="number" id="md-hpf" placeholder="H. Prod Fin" oninput="mod(1)">
-              <input type="number" id="md-ci" readonly><input type="number" id="md-cf" placeholder="Cont. Fin" oninput="mod(1)">
+              <input type="number" step="0.01" id="md-hmi" placeholder="H. Maq Ini"><input type="number" step="0.01" id="md-hmf" placeholder="H. Maq Fin" oninput="mod(1)">
+              <input type="number" id="md-hpi" placeholder="H. Prod Ini"><input type="number" id="md-hpf" placeholder="H. Prod Fin" oninput="mod(1)">
+              <input type="number" id="md-ci" placeholder="Cont. Ini"><input type="number" id="md-cf" placeholder="Cont. Fin" oninput="mod(1)">
             </div>
             <div class="grid-2">
               <div><label>Nº Saca FeSi</label><input type="text" id="md-fesi" placeholder="Nº Saca..." oninput="mod(1)"></div>
               <div><label>Observaciones</label><input type="text" id="md-obs" placeholder="Observaciones..." oninput="mod(1)"></div>
             </div>
-            <button class="btn-submit" onclick="enviarMD()">GUARDAR MEDIOS DENSOS</button>
+            <button class="btn-submit" id="btn-env-md" onclick="enviarMD()">GUARDAR MEDIOS DENSOS</button>
+          </div>
+
+          <div class="prod-list-container">
+            <h4 style="margin:0 0 10px 0; color:var(--primary)">📋 REGISTROS DEL TURNO ACTUAL</h4>
+            <div id="lista-prod-actual"></div>
+            
+            <h4 style="margin:20px 0 10px 0; color:#7f8c8d">🔍 TURNO ANTERIOR (SOLO LECTURA)</h4>
+            <div id="lista-prod-anterior"></div>
           </div>
         </div>
 
@@ -123,12 +142,7 @@
           <label>Motivo</label><select id="i-mot"></select>
           <input type="text" id="i-obs" placeholder="Notas..." oninput="mod(2)">
           <button class="btn-submit" onclick="enviarInc()">GUARDAR INCIDENCIA</button>
-          
-          <div id="historial-container" style="margin-top:25px; border-top: 2px solid #eee; padding-top: 15px;">
-            <h4 style="margin:0 0 10px 0; color: var(--secondary); font-size: 14px; text-transform: uppercase;">🕒 Últimas 3 incidencias (Historial)</h4>
-            <div id="lista-historial"></div>
-          </div>
-
+          <div id="lista-historial" class="prod-list-container"></div>
           <div id="lista-recientes" style="margin-top:20px"></div>
         </div>
       </div>
@@ -139,13 +153,11 @@
         <div class="card">
           <h3 style="margin-top:0; color:var(--primary); text-align: center;">REGISTRO DE PRUEBA</h3>
           <label>PROVEEDOR / ORIGEN</label>
-          <input type="text" id="pr-prov" placeholder="Nombre..." oninput="mod(3)">
-          
+          <input type="text" id="pr-prov" placeholder="Nombre...">
           <div class="grid-2">
-            <div><label>Hora Inicio</label><select id="pr-h1" onchange="mod(3)"></select></div>
-            <div><label>Hora Fin</label><select id="pr-h2" onchange="mod(3)"></select></div>
+            <div><label>Hora Inicio</label><select id="pr-h1"></select></div>
+            <div><label>Hora Fin</label><select id="pr-h2"></select></div>
           </div>
-
           <label>LÍNEA DE PROCESO</label>
           <select id="pr-linea" onchange="actualizarEtiquetasPrueba()">
             <option value="Finder">Finder</option>
@@ -154,22 +166,19 @@
             <option value="Medios densos">Medios densos</option>
             <option value="Molino">Molino</option>
           </select>
-
           <hr style="margin:15px 0; border:0; border-top:1px solid #eee">
-          
           <div class="grid-2">
-            <div id="group-c1"><label id="lbl-c1">CAMPO 1</label><input type="text" id="pr-c1" oninput="mod(3)"></div>
-            <div id="group-c2"><label id="lbl-c2">CAMPO 2</label><input type="text" id="pr-c2" oninput="mod(3)"></div>
+            <div id="group-c1"><label id="lbl-c1">C1</label><input type="text" id="pr-c1"></div>
+            <div id="group-c2"><label id="lbl-c2">C2</label><input type="text" id="pr-c2"></div>
           </div>
           <div class="grid-2">
-            <div id="group-c3"><label id="lbl-c3">CAMPO 3</label><input type="text" id="pr-c3" oninput="mod(3)"></div>
-            <div id="group-c4"><label id="lbl-c4">CAMPO 4</label><input type="text" id="pr-c4" oninput="mod(3)"></div>
+            <div id="group-c3"><label id="lbl-c3">C3</label><input type="text" id="pr-c3"></div>
+            <div id="group-c4"><label id="lbl-c4">C4</label><input type="text" id="pr-c4"></div>
           </div>
           <div class="grid-2">
-            <div id="group-c5"><label id="lbl-c5">CAMPO 5</label><input type="text" id="pr-c5" oninput="mod(3)"></div>
-            <div id="group-c6"><label id="lbl-c6">CAMPO 6</label><input type="text" id="pr-c6" oninput="mod(3)"></div>
+            <div id="group-c5"><label id="lbl-c5">C5</label><input type="text" id="pr-c5"></div>
+            <div id="group-c6"><label id="lbl-c6">C6</label><input type="text" id="pr-c6"></div>
           </div>
-
           <button class="btn-submit" onclick="enviarPrueba()">🚀 REGISTRAR PRUEBA</button>
         </div>
       </div>
@@ -178,15 +187,25 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztp4mAXKzYaDAM35QAJ0-5-YkzrjhwcnXp8h7RvAuabsYwu99Jv7i49xXUoJfcrWmg/exec";
-    let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[];
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUiCMYY4rJSxMR-u9KnymBWVmx1zlzDH8fMOH7Q9uaioFUrNMmf3dP_nJL9Vt4mYoj/exec";
+    let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[], PROD_ACTUAL=[];
+    let isSubmitting = false; // Variable para evitar doble click
 
     function mod(n){ MODS[n-1]=true; }
+
+    function obtenerTurnoSegunHora() {
+      const hora = new Date().getHours();
+      if (hora >= 6 && hora < 14) return "Mañana";
+      if (hora >= 14 && hora < 22) return "Tarde";
+      return "Noche";
+    }
 
     function ejecutarLogin(){
       const u=document.getElementById("user").value, p=document.getElementById("pass").value;
       if(!u || !p) return;
+      document.getElementById("btn-login").disabled = true;
       document.getElementById("login-status").innerText="Autenticando...";
+      
       fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
       .then(r=>r.json()).then(res=>{
         if(res.success){
@@ -195,16 +214,29 @@
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("header-usuario").innerText=USER.toUpperCase();
           document.getElementById("g-fecha").valueAsDate=new Date();
+          
           poblar("g-turno", ["Mañana","Tarde","Noche"]);
+          // Auto-selección de turno según hora actual
+          document.getElementById("g-turno").value = obtenerTurnoSegunHora();
+
           const mqs=["Finder","Zurik","Medios densos","Steinert"];
           document.getElementById("tabs-maquinas").innerHTML=mqs.map(m=>`<button class="tab-btn ${m==='Finder'?'active':''}" onclick="setMaq(event,'${m}')">${m}</button>`).join("");
           poblar("i-mot", res.motivos);
           poblar("md-op", res.operarios);
+          
           actualizarDesplegablesHoras();
           setMaq(null, "Finder");
-          actualizarEtiquetasPrueba(); // Inicializar etiquetas módulo pruebas
-        } else alert("Error de login");
+          actualizarEtiquetasPrueba();
+        } else {
+          alert("Error de login");
+          document.getElementById("btn-login").disabled = false;
+        }
       }).finally(()=>document.getElementById("login-status").innerText="");
+    }
+
+    function sincronizarTodo() {
+      actualizarDesplegablesHoras();
+      setMaq(null, MAQ);
     }
 
     function actualizarDesplegablesHoras(){
@@ -228,9 +260,8 @@
     }
 
     function setMaq(e, m){
-      if((MODS[0]||MODS[1]) && !confirm("Cambios sin guardar. ¿Salir?")) return;
-      MAQ=m; MODS=[false,false,false]; INC_REC=[];
-      document.getElementById("lista-recientes").innerHTML = "";
+      MAQ=m; MODS=[false,false,false]; 
+      cancelarEdicion();
       if(e){
         document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
         e.target.classList.add("active");
@@ -239,27 +270,141 @@
       document.getElementById("form-std").classList.toggle("hidden", m==='Medios densos');
       document.getElementById("form-md").classList.toggle("hidden", m!=='Medios densos');
       poblar("i-maq", ASSETS["activos"+(m==='Medios densos'?'MD':m)]);
-      setSeccion('horas');
       
-      document.getElementById("global-loader").innerText="Sincronizando datos...";
-      fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams({accion:'getHoras', maquina:m})})
+      const params = {
+        accion: 'getProduccion', 
+        maquina: m, 
+        fecha: document.getElementById("g-fecha").value, 
+        turno: document.getElementById("g-turno").value 
+      };
+
+      document.getElementById("global-loader").innerText="Cargando datos...";
+      fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams(params)})
       .then(r=>r.json()).then(res=>{
         if(m==='Medios densos'){
           document.getElementById("md-hmi").value=res.hMaq;
           document.getElementById("md-hpi").value=res.hProd;
           document.getElementById("md-ci").value=res.cont;
         } else document.getElementById("h-ini").value=res.horas;
+        
+        PROD_ACTUAL = res.actual;
+        dibujarListaProduccion(res.actual, true, "lista-prod-actual");
+        dibujarListaProduccion(res.anterior, false, "lista-prod-anterior");
         dibujarHistorial(res.ultimasInc);
       }).finally(()=>document.getElementById("global-loader").innerText="");
     }
 
+    function dibujarListaProduccion(lista, editable, containerId) {
+      const div = document.getElementById(containerId);
+      if(!lista || lista.length === 0) {
+        div.innerHTML = "<p style='color:gray; font-size:12px'>Sin registros.</p>";
+        return;
+      }
+      div.innerHTML = lista.map((p, idx) => `
+        <div class="prod-item">
+          <div class="prod-info">
+            <strong>Lote: ${p.lote}</strong><br>
+            <span style="font-size:12px">${MAQ === 'Medios densos' ? 'H.Maq: '+p.hMaq : 'Horas: '+p.hIni+' a '+p.hFin}</span>
+          </div>
+          ${editable ? `
+            <div class="prod-btns">
+              <button class="btn-edit action-btn" onclick="cargarParaEditar('${p.id}')">✎</button>
+              <button class="btn-delete action-btn" onclick="borrarProduccion('${p.id}')">✕</button>
+            </div>
+          ` : `<span class="badge-prev">Anterior</span>`}
+        </div>
+      `).join("");
+    }
+
+    function cargarParaEditar(id) {
+      const p = PROD_ACTUAL.find(x => x.id === id);
+      if(!p) return;
+      document.getElementById("p-id").value = p.id;
+      document.getElementById("p-lote").value = p.lote;
+      
+      if(MAQ === 'Medios densos') {
+        document.getElementById("md-op").value = p.usuario;
+        document.getElementById("md-hmi").value = p.hMaqIni; document.getElementById("md-hmf").value = p.hMaqFin;
+        document.getElementById("md-hpi").value = p.hProdIni; document.getElementById("md-hpf").value = p.hProdFin;
+        document.getElementById("md-ci").value = p.contIni; document.getElementById("md-cf").value = p.contFin;
+        document.getElementById("md-fesi").value = p.fesi; document.getElementById("md-obs").value = p.obs;
+      } else {
+        document.getElementById("h-ini").value = p.hIni;
+        document.getElementById("h-fin").value = p.hFin;
+      }
+      
+      document.getElementById("btn-env-std").innerText = "ACTUALIZAR REGISTRO";
+      document.getElementById("btn-env-md").innerText = "ACTUALIZAR MEDIOS DENSOS";
+      document.getElementById("btn-canc-edit").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicion() {
+      document.getElementById("p-id").value = "";
+      document.getElementById("p-lote").value = "";
+      document.getElementById("btn-env-std").innerText = "GUARDAR REGISTRO";
+      document.getElementById("btn-env-md").innerText = "GUARDAR MEDIOS DENSOS";
+      document.getElementById("btn-canc-edit").classList.add("hidden");
+    }
+
+    function borrarProduccion(id) {
+      if(!confirm("¿Borrar este registro definitivamente?")) return;
+      api({ accion: 'borrarProduccion', maquina: MAQ, id: id }, () => setMaq(null, MAQ));
+    }
+
+    function enviarProd(){
+      const d={
+        accion:'guardarHoras', maquina:MAQ, usuario:USER, id: document.getElementById("p-id").value,
+        fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
+        horasIni: document.getElementById("h-ini").value, horasFin: document.getElementById("h-fin").value, lote: document.getElementById("p-lote").value
+      };
+      if(!d.horasFin || !d.lote) return alert("Faltan datos");
+      api(d, ()=>{ setMaq(null, MAQ); });
+    }
+
+    function enviarMD(){
+      const d={
+        accion:'guardarMD', maquina:MAQ, usuario:USER, id: document.getElementById("p-id").value,
+        fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
+        operario: document.getElementById("md-op").value,
+        hMaqIni: document.getElementById("md-hmi").value, hMaqFin: document.getElementById("md-hmf").value,
+        hProdIni: document.getElementById("md-hpi").value, hProdFin: document.getElementById("md-hpf").value,
+        contIni: document.getElementById("md-ci").value, contFin: document.getElementById("md-cf").value,
+        fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value
+      };
+      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos");
+      api(d, ()=>{ setMaq(null, MAQ); });
+    }
+
+    // LÓGICA DE API MODIFICADA PARA EVITAR DOBLE CLIC
+    function api(p, cb){
+      if(isSubmitting) return; 
+      isSubmitting = true;
+      
+      // Deshabilitar todos los botones de envío y acción
+      document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = true);
+      document.getElementById("global-loader").innerText="Procesando...";
+      
+      fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
+      .then(r=>r.json()).then(res=>{
+        if(res.success){ cb(res); }
+        else alert("Error: "+res.error);
+      }).finally(()=>{
+        isSubmitting = false;
+        document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = false);
+        document.getElementById("global-loader").innerText="";
+      });
+    }
+
+    function poblar(id, a){ document.getElementById(id).innerHTML=a.map(x=>`<option value="${x}">${x}</option>`).join(""); }
+
     function dibujarHistorial(lista) {
       const div = document.getElementById("lista-historial");
       if (!lista || lista.length === 0) {
-        div.innerHTML = "<p style='font-size:12px; color:gray;'>No hay incidencias previas.</p>";
+        div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4><p style='font-size:12px; color:gray;'>No hay incidencias previas.</p>";
         return;
       }
-      div.innerHTML = lista.map(inc => `
+      div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4>" + lista.map(inc => `
         <div style="background:#fff; border-left:4px solid #bdc3c7; padding:10px; margin-bottom:8px; font-size:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1)">
           <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent)">
             <span>⚠️ ${inc.motivo}</span><span>⏱️ ${inc.horas}h</span>
@@ -270,49 +415,6 @@
       `).join("");
     }
 
-    function actualizarEtiquetasPrueba() {
-      const linea = document.getElementById("pr-linea").value;
-      const ids = ["c1","c2","c3","c4","c5","c6"];
-      
-      // Reset visibilidad inicial (mostrar todos)
-      ids.forEach(id => document.getElementById("group-"+id).classList.remove("hidden"));
-
-      if (linea === "Finder") {
-        document.getElementById("lbl-c1").innerText = "MM";
-        document.getElementById("lbl-c2").innerText = "FE";
-        document.getElementById("lbl-c3").innerText = "MA";
-        document.getElementById("lbl-c4").innerText = "INOX";
-        document.getElementById("lbl-c5").innerText = "MERMA 1";
-        document.getElementById("lbl-c6").innerText = "MERMA 2";
-      } else if (linea === "Medios densos") {
-        document.getElementById("lbl-c1").innerText = "ALUMINIO";
-        document.getElementById("lbl-c2").innerText = "HEAVIES";
-        document.getElementById("lbl-c3").innerText = "LIGEROS";
-        document.getElementById("lbl-c4").innerText = "LARGOS";
-        document.getElementById("group-c5").classList.add("hidden");
-        document.getElementById("group-c6").classList.add("hidden");
-      } else if (linea === "Steinert") {
-        document.getElementById("lbl-c1").innerText = "MM";
-        document.getElementById("lbl-c2").innerText = "FE";
-        document.getElementById("lbl-c3").innerText = "MA";
-        document.getElementById("group-c4").classList.add("hidden");
-        document.getElementById("group-c5").classList.add("hidden");
-        document.getElementById("group-c6").classList.add("hidden");
-      } else if (linea === "Zurik") {
-        document.getElementById("lbl-c1").innerText = "MERMA 1";
-        document.getElementById("lbl-c2").innerText = "MERMA 2";
-        document.getElementById("lbl-c3").innerText = "MA";
-        document.getElementById("group-c4").classList.add("hidden");
-        document.getElementById("group-c5").classList.add("hidden");
-        document.getElementById("group-c6").classList.add("hidden");
-      } else {
-        // Genérico (ej. Molino u otros)
-        ids.forEach((id, index) => {
-          document.getElementById("lbl-"+id).innerText = "CAMPO " + (index + 1);
-        });
-      }
-    }
-
     function setSeccion(s){
       document.getElementById("sec-horas").classList.toggle("hidden", s!=='horas');
       document.getElementById("sec-inc").classList.toggle("hidden", s!=='inc');
@@ -321,42 +423,10 @@
     }
 
     function cambiarModulo(m){
-      if(MODS.some(x=>x) && !confirm("Hay datos escritos. ¿Cambiar?")) return;
       document.getElementById("modulo-produccion").classList.toggle("hidden", m!=='produccion');
       document.getElementById("modulo-pruebas").classList.toggle("hidden", m!=='pruebas');
       document.getElementById("nav-prod").classList.toggle("active", m==='produccion');
       document.getElementById("nav-pruebas").classList.toggle("active", m==='pruebas');
-    }
-
-    function enviarProd(){
-      const d={
-        accion:'guardarHoras', maquina:MAQ, usuario:USER,
-        fecha: document.getElementById("g-fecha").value,
-        turno: document.getElementById("g-turno").value,
-        horasIni: document.getElementById("h-ini").value,
-        horasFin: document.getElementById("h-fin").value,
-        lote: document.getElementById("p-lote").value
-      };
-      if(!d.horasFin || !d.lote) return alert("Faltan datos");
-      api(d, ()=>{ document.getElementById("h-fin").value=""; document.getElementById("p-lote").value=""; MODS[0]=false; setMaq(null, MAQ); });
-    }
-
-    function enviarMD(){
-      const d={
-        accion:'guardarMD', maquina:MAQ, usuario:USER,
-        fecha: document.getElementById("g-fecha").value,
-        turno: document.getElementById("g-turno").value,
-        operario: document.getElementById("md-op").value,
-        hMaqIni: document.getElementById("md-hmi").value, hMaqFin: document.getElementById("md-hmf").value,
-        hProdIni: document.getElementById("md-hpi").value, hProdFin: document.getElementById("md-hpf").value,
-        contIni: document.getElementById("md-ci").value, contFin: document.getElementById("md-cf").value,
-        fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value
-      };
-      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos");
-      api(d, ()=>{ 
-        ["md-hmf","md-hpf","md-cf","md-fesi","md-obs","p-lote"].forEach(id=>document.getElementById(id).value=""); 
-        MODS[0]=false; setMaq(null, MAQ); 
-      });
     }
 
     function enviarInc(){
@@ -368,9 +438,8 @@
       };
       api(d, (res)=>{ 
         INC_REC.push({id: res.idUnico, txt: `${d.horaParada}-${d.horaArranque} | ${d.motivo}`});
-        ["i-obs"].forEach(id => document.getElementById(id).value = "");
-        ["i-h1", "i-h2", "i-mot", "i-maq"].forEach(id => document.getElementById(id).selectedIndex = 0);
-        MODS[1]=false; dibujarRecientes();
+        document.getElementById("i-obs").value = "";
+        dibujarRecientes();
       });
     }
 
@@ -385,34 +454,44 @@
         campo5: document.getElementById("pr-c5").value, campo6: document.getElementById("pr-c6").value
       };
       if(!d.proveedor) return alert("Falta el proveedor");
-      api(d, ()=>{ 
-        ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5","pr-c6"].forEach(id=>document.getElementById(id).value=""); 
-        MODS[2]=false; 
-      });
+      api(d, ()=>{ ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5","pr-c6"].forEach(id=>document.getElementById(id).value=""); });
     }
 
-    function api(p, cb){
-      document.getElementById("global-loader").innerText="Enviando...";
-      fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
-      .then(r=>r.json()).then(res=>{
-        if(res.success){ alert(res.mensaje || "Hecho"); cb(res); }
-        else alert("Error: "+res.error);
-      }).finally(()=>document.getElementById("global-loader").innerText="");
-    }
-
-    function poblar(id, a){ document.getElementById(id).innerHTML=a.map(x=>`<option value="${x}">${x}</option>`).join(""); }
-    
     function dibujarRecientes(){
       const div=document.getElementById("lista-recientes");
-      div.innerHTML="<h4>Guardadas ahora:</h4>" + INC_REC.map(i=>`
-        <div class="incidencia-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" style="background:red; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer">X</button></div>
+      div.innerHTML="<h4>Incidencias guardadas ahora:</h4>" + INC_REC.map(i=>`
+        <div class="prod-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" class="btn-delete action-btn">✕</button></div>
       `).join("");
     }
 
     function borrarInc(id){
       if(!confirm("¿Borrar?")) return;
-      fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams({accion:'borrarIncidencia', maquina:MAQ, idUnico:id})})
-      .then(()=>{ INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes(); });
+      api({accion:'borrarIncidencia', maquina:MAQ, idUnico:id}, () => {
+        INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes();
+      });
+    }
+
+    function actualizarEtiquetasPrueba() {
+      const linea = document.getElementById("pr-linea").value;
+      const ids = ["c1","c2","c3","c4","c5","c6"];
+      ids.forEach(id => document.getElementById("group-"+id).classList.remove("hidden"));
+      if (linea === "Finder") {
+        document.getElementById("lbl-c1").innerText = "MM"; document.getElementById("lbl-c2").innerText = "FE";
+        document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("lbl-c4").innerText = "INOX";
+        document.getElementById("lbl-c5").innerText = "MERMA 1"; document.getElementById("lbl-c6").innerText = "MERMA 2";
+      } else if (linea === "Medios densos") {
+        document.getElementById("lbl-c1").innerText = "ALUMINIO"; document.getElementById("lbl-c2").innerText = "HEAVIES";
+        document.getElementById("lbl-c3").innerText = "LIGEROS"; document.getElementById("lbl-c4").innerText = "LARGOS";
+        document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden");
+      } else if (linea === "Steinert") {
+        document.getElementById("lbl-c1").innerText = "MM"; document.getElementById("lbl-c2").innerText = "FE";
+        document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("group-c4").classList.add("hidden");
+        document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden");
+      } else if (linea === "Zurik") {
+        document.getElementById("lbl-c1").innerText = "MERMA 1"; document.getElementById("lbl-c2").innerText = "MERMA 2";
+        document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("group-c4").classList.add("hidden");
+        document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden");
+      }
     }
   </script>
 </body>
