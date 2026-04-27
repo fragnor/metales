@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4.6</title>
+  <title>App Metales v4.7</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
@@ -187,9 +187,9 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUiCMYY4rJSxMR-u9KnymBWVmx1zlzDH8fMOH7Q9uaioFUrNMmf3dP_nJL9Vt4mYoj/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHhtLCgwvAkfXDKQ4fmdkheTcIEbyKh1u9H4kHLo-2NNEqG9Z_-A0RL445qCsddzdO/exec"; // ¡Acuérdate de cambiar esto!
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[], PROD_ACTUAL=[];
-    let isSubmitting = false; // Variable para evitar doble click
+    let isSubmitting = false; 
 
     function mod(n){ MODS[n-1]=true; }
 
@@ -213,10 +213,14 @@
           document.getElementById("login-screen").classList.add("hidden");
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("header-usuario").innerText=USER.toUpperCase();
-          document.getElementById("g-fecha").valueAsDate=new Date();
+          
+          // Formatear correctamente la fecha para el input local (sin saltos de zona horaria)
+          const hoy = new Date();
+          const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+          const dia = String(hoy.getDate()).padStart(2, '0');
+          document.getElementById("g-fecha").value = `${hoy.getFullYear()}-${mes}-${dia}`;
           
           poblar("g-turno", ["Mañana","Tarde","Noche"]);
-          // Auto-selección de turno según hora actual
           document.getElementById("g-turno").value = obtenerTurnoSegunHora();
 
           const mqs=["Finder","Zurik","Medios densos","Steinert"];
@@ -340,6 +344,7 @@
     }
 
     function cancelarEdicion() {
+      // Limpiamos todo para que no se hereden datos por accidente
       document.getElementById("p-id").value = "";
       document.getElementById("p-lote").value = "";
       document.getElementById("btn-env-std").innerText = "GUARDAR REGISTRO";
@@ -358,7 +363,7 @@
         fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
         horasIni: document.getElementById("h-ini").value, horasFin: document.getElementById("h-fin").value, lote: document.getElementById("p-lote").value
       };
-      if(!d.horasFin || !d.lote) return alert("Faltan datos");
+      if(!d.horasFin || !d.lote) return alert("Faltan datos (Lote u Hora Fin)");
       api(d, ()=>{ setMaq(null, MAQ); });
     }
 
@@ -372,18 +377,16 @@
         contIni: document.getElementById("md-ci").value, contFin: document.getElementById("md-cf").value,
         fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value
       };
-      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos");
+      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos obligatorios (Lote o Finales)");
       api(d, ()=>{ setMaq(null, MAQ); });
     }
 
-    // LÓGICA DE API MODIFICADA PARA EVITAR DOBLE CLIC
     function api(p, cb){
       if(isSubmitting) return; 
       isSubmitting = true;
       
-      // Deshabilitar todos los botones de envío y acción
       document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = true);
-      document.getElementById("global-loader").innerText="Procesando...";
+      document.getElementById("global-loader").innerText="Procesando datos en el Excel...";
       
       fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
       .then(r=>r.json()).then(res=>{
