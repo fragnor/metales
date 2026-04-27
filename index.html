@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4.7</title>
+  <title>App Metales v4.8</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
@@ -187,7 +187,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHhtLCgwvAkfXDKQ4fmdkheTcIEbyKh1u9H4kHLo-2NNEqG9Z_-A0RL445qCsddzdO/exec"; // ¡Acuérdate de cambiar esto!
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz19B1hVJzhre3GPrk8R7BEih0g-yUJppnMQJCbGOOwCBrImdcwSidVLpjphQghNNmG/exec"; // 
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[], PROD_ACTUAL=[];
     let isSubmitting = false; 
 
@@ -214,7 +214,6 @@
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("header-usuario").innerText=USER.toUpperCase();
           
-          // Formatear correctamente la fecha para el input local (sin saltos de zona horaria)
           const hoy = new Date();
           const mes = String(hoy.getMonth() + 1).padStart(2, '0');
           const dia = String(hoy.getDate()).padStart(2, '0');
@@ -292,7 +291,7 @@
         } else document.getElementById("h-ini").value=res.horas;
         
         PROD_ACTUAL = res.actual;
-        dibujarListaProduccion(res.actual, true, "lista-prod-actual");
+        dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
         dibujarListaProduccion(res.anterior, false, "lista-prod-anterior");
         dibujarHistorial(res.ultimasInc);
       }).finally(()=>document.getElementById("global-loader").innerText="");
@@ -344,7 +343,6 @@
     }
 
     function cancelarEdicion() {
-      // Limpiamos todo para que no se hereden datos por accidente
       document.getElementById("p-id").value = "";
       document.getElementById("p-lote").value = "";
       document.getElementById("btn-env-std").innerText = "GUARDAR REGISTRO";
@@ -352,24 +350,46 @@
       document.getElementById("btn-canc-edit").classList.add("hidden");
     }
 
+    // AHORA EL BORRADO ES LOCAL TIPO INCIDENCIAS
     function borrarProduccion(id) {
       if(!confirm("¿Borrar este registro definitivamente?")) return;
-      api({ accion: 'borrarProduccion', maquina: MAQ, id: id }, () => setMaq(null, MAQ));
+      api({ accion: 'borrarProduccion', maquina: MAQ, id: id }, () => {
+        PROD_ACTUAL = PROD_ACTUAL.filter(x => x.id !== id);
+        dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
+      });
     }
 
+    // GUARDADO LOCAL DE PRODUCCIÓN
     function enviarProd(){
+      const pId = document.getElementById("p-id").value;
       const d={
-        accion:'guardarHoras', maquina:MAQ, usuario:USER, id: document.getElementById("p-id").value,
+        accion:'guardarHoras', maquina:MAQ, usuario:USER, id: pId,
         fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
         horasIni: document.getElementById("h-ini").value, horasFin: document.getElementById("h-fin").value, lote: document.getElementById("p-lote").value
       };
       if(!d.horasFin || !d.lote) return alert("Faltan datos (Lote u Hora Fin)");
-      api(d, ()=>{ setMaq(null, MAQ); });
+      
+      api(d, (res)=>{ 
+        if(res.record) {
+          if (pId) {
+            const idx = PROD_ACTUAL.findIndex(x => x.id === pId);
+            if(idx !== -1) PROD_ACTUAL[idx] = res.record;
+          } else {
+            PROD_ACTUAL.push(res.record);
+          }
+          dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
+          cancelarEdicion();
+          document.getElementById("h-ini").value = res.record.hFin; // Preparar para el siguiente
+          document.getElementById("h-fin").value = "";
+        }
+      });
     }
 
+    // GUARDADO LOCAL DE MEDIOS DENSOS
     function enviarMD(){
+      const pId = document.getElementById("p-id").value;
       const d={
-        accion:'guardarMD', maquina:MAQ, usuario:USER, id: document.getElementById("p-id").value,
+        accion:'guardarMD', maquina:MAQ, usuario:USER, id: pId,
         fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
         operario: document.getElementById("md-op").value,
         hMaqIni: document.getElementById("md-hmi").value, hMaqFin: document.getElementById("md-hmf").value,
@@ -378,7 +398,25 @@
         fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value
       };
       if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos obligatorios (Lote o Finales)");
-      api(d, ()=>{ setMaq(null, MAQ); });
+      
+      api(d, (res)=>{ 
+        if(res.record) {
+          if (pId) {
+            const idx = PROD_ACTUAL.findIndex(x => x.id === pId);
+            if(idx !== -1) PROD_ACTUAL[idx] = res.record;
+          } else {
+            PROD_ACTUAL.push(res.record);
+          }
+          dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
+          cancelarEdicion();
+          document.getElementById("md-hmi").value = res.record.hMaqFin;
+          document.getElementById("md-hpi").value = res.record.hProdFin;
+          document.getElementById("md-ci").value = res.record.contFin;
+          document.getElementById("md-hmf").value = "";
+          document.getElementById("md-hpf").value = "";
+          document.getElementById("md-cf").value = "";
+        }
+      });
     }
 
     function api(p, cb){
@@ -386,7 +424,7 @@
       isSubmitting = true;
       
       document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = true);
-      document.getElementById("global-loader").innerText="Procesando datos en el Excel...";
+      document.getElementById("global-loader").innerText="Guardando datos...";
       
       fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
       .then(r=>r.json()).then(res=>{
