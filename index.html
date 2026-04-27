@@ -128,7 +128,7 @@
             <h4 style="margin:0 0 10px 0; color:var(--primary)">📋 REGISTROS DEL TURNO ACTUAL</h4>
             <div id="lista-prod-actual"></div>
             
-            <h4 style="margin:20px 0 10px 0; color:#7f8c8d">🔍 TURNO ANTERIOR (SOLO LECTURA)</h4>
+            <h4 style="margin:20px 0 10px 0; color:#7f8c8d">🔍 TURNO ANTERIOR </h4>
             <div id="lista-prod-anterior"></div>
           </div>
         </div>
@@ -204,7 +204,7 @@
       const u=document.getElementById("user").value, p=document.getElementById("pass").value;
       if(!u || !p) return;
       document.getElementById("btn-login").disabled = true;
-      document.getElementById("login-status").innerText="Autenticando...";
+      document.getElementById("login-status").innerText="todo estará bien...";
       
       fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
       .then(r=>r.json()).then(res=>{
