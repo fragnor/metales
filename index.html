@@ -3,57 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Metales v4.8</title>
+  <title>App Metales v4.9</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; color: var(--primary); }
-    
-    /* Login */
     #login-screen { position: fixed; inset: 0; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .login-card { background: white; padding: 30px; border-radius: 12px; width: 300px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-
-    /* Layout */
     header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
     .nav-modulos { display: flex; background: #1a252f; }
     .nav-modulos button { flex: 1; padding: 14px; border: none; background: none; color: #95a5a6; font-weight: bold; cursor: pointer; font-size: 13px; text-transform: uppercase; }
     .nav-modulos button.active { color: white; background: var(--accent); }
-
     .global-controls { background: white; padding: 15px; display: flex; gap: 20px; justify-content: center; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
     .global-controls div { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
-
     nav.tabs { display: flex; background: var(--secondary); overflow-x: auto; scrollbar-width: none; }
     .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #bdc3c7; cursor: pointer; font-weight: 600; min-width: 100px; }
     .tab-btn.active { color: white; border-bottom: 4px solid var(--accent); background: rgba(255,255,255,0.1); }
-
     .container { padding: 20px; max-width: 700px; margin: auto; }
     .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    
-    /* Form */
     .sub-tabs { display: flex; margin-bottom: 20px; gap: 10px; }
     .sub-tab-btn { flex: 1; padding: 10px; border: 1px solid #ccc; background: #f8f9fa; cursor: pointer; font-weight: bold; border-radius: 6px; }
     .sub-tab-btn.active { background: var(--primary); color: white; }
-
     label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #555; }
     input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; }
-    input[readonly] { background: #eee; }
-
     .btn-submit { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; box-shadow: 0 4px 0 #a04000; transition: all 0.2s; }
     .btn-submit:active { transform: translateY(3px); box-shadow: 0 1px 0 #a04000; }
     .btn-submit:disabled { background: #95a5a6; box-shadow: none; cursor: not-allowed; transform: none; }
-
     .hidden { display: none !important; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .loader { text-align: center; color: var(--accent); font-weight: bold; padding: 10px; font-size: 14px; }
-
-    /* Listas de Producción */
     .prod-list-container { margin-top: 25px; border-top: 2px solid #eee; padding-top: 15px; }
     .prod-item { background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
     .prod-info { flex-grow: 1; }
     .prod-btns { display: flex; gap: 8px; }
     .btn-edit { background: #3498db; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
     .btn-delete { background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
-    .btn-delete:disabled, .btn-edit:disabled { background: #bdc3c7; cursor: not-allowed; }
     .badge-prev { background: #95a5a6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
   </style>
 </head>
@@ -119,15 +103,15 @@
             </div>
             <div class="grid-2">
               <div><label>Nº Saca FeSi</label><input type="text" id="md-fesi" placeholder="Nº Saca..." oninput="mod(1)"></div>
-              <div><label>Observaciones</label><input type="text" id="md-obs" placeholder="Observaciones..." oninput="mod(1)"></div>
+              <div><label>m³ Agua Gastados</label><input type="number" id="md-agua" placeholder="m³..." oninput="mod(1)"></div>
             </div>
+            <label>Observaciones</label><input type="text" id="md-obs" placeholder="Observaciones..." oninput="mod(1)">
             <button class="btn-submit" id="btn-env-md" onclick="enviarMD()">GUARDAR MEDIOS DENSOS</button>
           </div>
 
           <div class="prod-list-container">
             <h4 style="margin:0 0 10px 0; color:var(--primary)">📋 REGISTROS DEL TURNO ACTUAL</h4>
             <div id="lista-prod-actual"></div>
-            
             <h4 style="margin:20px 0 10px 0; color:#7f8c8d">🔍 TURNO ANTERIOR </h4>
             <div id="lista-prod-anterior"></div>
           </div>
@@ -187,12 +171,11 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyC7ECWy8lyuGk7BEIKrg3nuL57llSwlzeh9bjK5boHz2DupNuEgayr2P-9QMGVkWlJ/exec"; // ¡Acuérdate de cambiar esto!
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMlYhSvWnzAIXUOs4KHVaDExnfA8JBsD10dsyQny9Ktb9ANSbxMeKKw5gOYh2POSvo/exec"; 
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[], PROD_ACTUAL=[];
     let isSubmitting = false; 
 
     function mod(n){ MODS[n-1]=true; }
-
     function obtenerTurnoSegunHora() {
       const hora = new Date().getHours();
       if (hora >= 6 && hora < 14) return "Mañana";
@@ -204,8 +187,7 @@
       const u=document.getElementById("user").value, p=document.getElementById("pass").value;
       if(!u || !p) return;
       document.getElementById("btn-login").disabled = true;
-      document.getElementById("login-status").innerText="todo estará bien...";
-      
+      document.getElementById("login-status").innerText="conectando...";
       fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
       .then(r=>r.json()).then(res=>{
         if(res.success){
@@ -213,20 +195,16 @@
           document.getElementById("login-screen").classList.add("hidden");
           document.getElementById("app").classList.remove("hidden");
           document.getElementById("header-usuario").innerText=USER.toUpperCase();
-          
           const hoy = new Date();
           const mes = String(hoy.getMonth() + 1).padStart(2, '0');
           const dia = String(hoy.getDate()).padStart(2, '0');
           document.getElementById("g-fecha").value = `${hoy.getFullYear()}-${mes}-${dia}`;
-          
           poblar("g-turno", ["Mañana","Tarde","Noche"]);
           document.getElementById("g-turno").value = obtenerTurnoSegunHora();
-
           const mqs=["Finder","Zurik","Medios densos","Steinert"];
           document.getElementById("tabs-maquinas").innerHTML=mqs.map(m=>`<button class="tab-btn ${m==='Finder'?'active':''}" onclick="setMaq(event,'${m}')">${m}</button>`).join("");
           poblar("i-mot", res.motivos);
           poblar("md-op", res.operarios);
-          
           actualizarDesplegablesHoras();
           setMaq(null, "Finder");
           actualizarEtiquetasPrueba();
@@ -273,23 +251,14 @@
       document.getElementById("form-std").classList.toggle("hidden", m==='Medios densos');
       document.getElementById("form-md").classList.toggle("hidden", m!=='Medios densos');
       poblar("i-maq", ASSETS["activos"+(m==='Medios densos'?'MD':m)]);
-      
-      const params = {
-        accion: 'getProduccion', 
-        maquina: m, 
-        fecha: document.getElementById("g-fecha").value, 
-        turno: document.getElementById("g-turno").value 
-      };
-
       document.getElementById("global-loader").innerText="Cargando datos...";
-      fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams(params)})
+      fetch(SCRIPT_URL, { method:'POST', body:new URLSearchParams({accion:'getProduccion', maquina:m, fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value})})
       .then(r=>r.json()).then(res=>{
         if(m==='Medios densos'){
           document.getElementById("md-hmi").value=res.hMaq;
           document.getElementById("md-hpi").value=res.hProd;
           document.getElementById("md-ci").value=res.cont;
         } else document.getElementById("h-ini").value=res.horas;
-        
         PROD_ACTUAL = res.actual;
         dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
         dibujarListaProduccion(res.anterior, false, "lista-prod-anterior");
@@ -307,7 +276,7 @@
         <div class="prod-item">
           <div class="prod-info">
             <strong>Lote: ${p.lote}</strong><br>
-            <span style="font-size:12px">${MAQ === 'Medios densos' ? 'H.Maq: '+p.hMaq : 'Horas: '+p.hIni+' a '+p.hFin}</span>
+            <span style="font-size:12px">${MAQ === 'Medios densos' ? 'H.Maq: '+p.hMaq + (p.m3Agua ? ' | '+p.m3Agua+'m³' : '') : 'Horas: '+p.hIni+' a '+p.hFin}</span>
           </div>
           ${editable ? `
             <div class="prod-btns">
@@ -324,18 +293,16 @@
       if(!p) return;
       document.getElementById("p-id").value = p.id;
       document.getElementById("p-lote").value = p.lote;
-      
       if(MAQ === 'Medios densos') {
         document.getElementById("md-op").value = p.usuario;
         document.getElementById("md-hmi").value = p.hMaqIni; document.getElementById("md-hmf").value = p.hMaqFin;
         document.getElementById("md-hpi").value = p.hProdIni; document.getElementById("md-hpf").value = p.hProdFin;
         document.getElementById("md-ci").value = p.contIni; document.getElementById("md-cf").value = p.contFin;
         document.getElementById("md-fesi").value = p.fesi; document.getElementById("md-obs").value = p.obs;
+        document.getElementById("md-agua").value = p.m3Agua || "";
       } else {
-        document.getElementById("h-ini").value = p.hIni;
-        document.getElementById("h-fin").value = p.hFin;
+        document.getElementById("h-ini").value = p.hIni; document.getElementById("h-fin").value = p.hFin;
       }
-      
       document.getElementById("btn-env-std").innerText = "ACTUALIZAR REGISTRO";
       document.getElementById("btn-env-md").innerText = "ACTUALIZAR MEDIOS DENSOS";
       document.getElementById("btn-canc-edit").classList.remove("hidden");
@@ -345,6 +312,7 @@
     function cancelarEdicion() {
       document.getElementById("p-id").value = "";
       document.getElementById("p-lote").value = "";
+      document.getElementById("md-agua").value = "";
       document.getElementById("btn-env-std").innerText = "GUARDAR REGISTRO";
       document.getElementById("btn-env-md").innerText = "GUARDAR MEDIOS DENSOS";
       document.getElementById("btn-canc-edit").classList.add("hidden");
@@ -358,55 +326,37 @@
       });
     }
 
-    // AYUDANTE PARA VALIDAR ENTEROS
     function contieneDecimales(ids) {
       for (let id of ids) {
-        const input = document.getElementById(id);
-        if (input.value.includes('.') || input.value.includes(',')) return true;
+        const val = document.getElementById(id).value;
+        if (val.includes('.') || val.includes(',')) return true;
       }
       return false;
     }
 
     function enviarProd(){
       const pId = document.getElementById("p-id").value;
-      
-      // VALIDACIÓN DECIMALES
-      if (contieneDecimales(['h-ini', 'h-fin'])) {
-        return alert("⚠️ ERROR: No se permiten decimales (puntos o comas). Por favor, introduce solo números enteros.");
-      }
-
+      if (contieneDecimales(['h-ini', 'h-fin'])) return alert("⚠️ ERROR: No se permiten decimales.");
       const d={
         accion:'guardarHoras', maquina:MAQ, usuario:USER, id: pId,
         fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
         horasIni: document.getElementById("h-ini").value, horasFin: document.getElementById("h-fin").value, lote: document.getElementById("p-lote").value
       };
-      if(!d.horasFin || !d.lote) return alert("Faltan datos (Lote u Hora Fin)");
-      
+      if(!d.horasFin || !d.lote) return alert("Faltan datos");
       api(d, (res)=>{ 
         if(res.record) {
-          if (pId) {
-            const idx = PROD_ACTUAL.findIndex(x => x.id === pId);
-            if(idx !== -1) PROD_ACTUAL[idx] = res.record;
-          } else {
-            PROD_ACTUAL.push(res.record);
-          }
+          if (pId) { const idx = PROD_ACTUAL.findIndex(x => x.id === pId); if(idx !== -1) PROD_ACTUAL[idx] = res.record; }
+          else { PROD_ACTUAL.push(res.record); }
           dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
           cancelarEdicion();
-          document.getElementById("h-ini").value = res.record.hFin; 
-          document.getElementById("h-fin").value = "";
+          document.getElementById("h-ini").value = res.record.hFin; document.getElementById("h-fin").value = "";
         }
       });
     }
 
     function enviarMD(){
       const pId = document.getElementById("p-id").value;
-
-      // VALIDACIÓN DECIMALES MEDIOS DENSOS
-      const camposMD = ['md-hmi', 'md-hmf', 'md-hpi', 'md-hpf', 'md-ci', 'md-cf'];
-      if (contieneDecimales(camposMD)) {
-        return alert("⚠️ ERROR: No se permiten decimales (puntos o comas). Por favor, introduce solo números enteros en todos los campos de Medios Densos.");
-      }
-
+      if (contieneDecimales(['md-hmi', 'md-hmf', 'md-hpi', 'md-hpf', 'md-ci', 'md-cf', 'md-agua'])) return alert("⚠️ ERROR: No se permiten decimales.");
       const d={
         accion:'guardarMD', maquina:MAQ, usuario:USER, id: pId,
         fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
@@ -414,144 +364,71 @@
         hMaqIni: document.getElementById("md-hmi").value, hMaqFin: document.getElementById("md-hmf").value,
         hProdIni: document.getElementById("md-hpi").value, hProdFin: document.getElementById("md-hpf").value,
         contIni: document.getElementById("md-ci").value, contFin: document.getElementById("md-cf").value,
-        fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value
+        fesi: document.getElementById("md-fesi").value, obs: document.getElementById("md-obs").value, lote: document.getElementById("p-lote").value,
+        m3Agua: document.getElementById("md-agua").value
       };
-      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos obligatorios (Lote o Finales)");
-      
+      if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos");
       api(d, (res)=>{ 
         if(res.record) {
-          if (pId) {
-            const idx = PROD_ACTUAL.findIndex(x => x.id === pId);
-            if(idx !== -1) PROD_ACTUAL[idx] = res.record;
-          } else {
-            PROD_ACTUAL.push(res.record);
-          }
+          if (pId) { const idx = PROD_ACTUAL.findIndex(x => x.id === pId); if(idx !== -1) PROD_ACTUAL[idx] = res.record; }
+          else { PROD_ACTUAL.push(res.record); }
           dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
           cancelarEdicion();
           document.getElementById("md-hmi").value = res.record.hMaqFin;
           document.getElementById("md-hpi").value = res.record.hProdFin;
           document.getElementById("md-ci").value = res.record.contFin;
-          document.getElementById("md-hmf").value = "";
-          document.getElementById("md-hpf").value = "";
-          document.getElementById("md-cf").value = "";
+          ["md-hmf","md-hpf","md-cf","md-agua"].forEach(id=>document.getElementById(id).value="");
         }
       });
     }
 
     function api(p, cb){
-      if(isSubmitting) return; 
-      isSubmitting = true;
-      
+      if(isSubmitting) return; isSubmitting = true;
       document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = true);
-      document.getElementById("global-loader").innerText="Guardando datos...";
-      
+      document.getElementById("global-loader").innerText="Guardando...";
       fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
-      .then(r=>r.json()).then(res=>{
-        if(res.success){ cb(res); }
-        else alert("Error: "+res.error);
-      }).finally(()=>{
-        isSubmitting = false;
-        document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = false);
-        document.getElementById("global-loader").innerText="";
-      });
+      .then(r=>r.json()).then(res=>{ if(res.success){ cb(res); } else alert("Error: "+res.error); })
+      .finally(()=>{ isSubmitting = false; document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = false); document.getElementById("global-loader").innerText=""; });
     }
 
     function poblar(id, a){ document.getElementById(id).innerHTML=a.map(x=>`<option value="${x}">${x}</option>`).join(""); }
-
     function dibujarHistorial(lista) {
       const div = document.getElementById("lista-historial");
-      if (!lista || lista.length === 0) {
-        div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4><p style='font-size:12px; color:gray;'>No hay incidencias previas.</p>";
-        return;
-      }
-      div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4>" + lista.map(inc => `
-        <div style="background:#fff; border-left:4px solid #bdc3c7; padding:10px; margin-bottom:8px; font-size:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1)">
-          <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent)">
-            <span>⚠️ ${inc.motivo}</span><span>⏱️ ${inc.horas}h</span>
-          </div>
-          <div><b>Activo:</b> ${inc.activo}</div>
-          <div style="font-style:italic; color:#666">"${inc.obs || 'Sin notas'}"</div>
-        </div>
-      `).join("");
+      if (!lista || lista.length === 0) { div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4><p style='font-size:12px; color:gray;'>No hay incidencias.</p>"; return; }
+      div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4>" + lista.map(inc => `<div style="background:#fff; border-left:4px solid #bdc3c7; padding:10px; margin-bottom:8px; font-size:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1)"><div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent)"><span>⚠️ ${inc.motivo}</span><span>⏱️ ${inc.horas}h</span></div><div><b>Activo:</b> ${inc.activo}</div></div>`).join("");
     }
-
     function setSeccion(s){
       document.getElementById("sec-horas").classList.toggle("hidden", s!=='horas');
       document.getElementById("sec-inc").classList.toggle("hidden", s!=='inc');
       document.getElementById("st-horas").classList.toggle("active", s==='horas');
       document.getElementById("st-inc").classList.toggle("active", s==='inc');
     }
-
     function cambiarModulo(m){
       document.getElementById("modulo-produccion").classList.toggle("hidden", m!=='produccion');
       document.getElementById("modulo-pruebas").classList.toggle("hidden", m!=='pruebas');
       document.getElementById("nav-prod").classList.toggle("active", m==='produccion');
       document.getElementById("nav-pruebas").classList.toggle("active", m==='pruebas');
     }
-
     function enviarInc(){
-      const d={
-        accion:'guardarIncidencia', maquina:MAQ, usuario:USER,
-        fecha: document.getElementById("g-fecha").value, turno: document.getElementById("g-turno").value,
-        horaParada: document.getElementById("i-h1").value, horaArranque: document.getElementById("i-h2").value,
-        motivo: document.getElementById("i-mot").value, maquinaAfectada: document.getElementById("i-maq").value, observaciones: document.getElementById("i-obs").value
-      };
-      api(d, (res)=>{ 
-        INC_REC.push({id: res.idUnico, txt: `${d.horaParada}-${d.horaArranque} | ${d.motivo}`});
-        document.getElementById("i-obs").value = "";
-        dibujarRecientes();
-      });
+      api({accion:'guardarIncidencia', maquina:MAQ, usuario:USER, fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value, horaParada:document.getElementById("i-h1").value, horaArranque:document.getElementById("i-h2").value, motivo:document.getElementById("i-mot").value, maquinaAfectada:document.getElementById("i-maq").value, observaciones:document.getElementById("i-obs").value}, (res)=>{ INC_REC.push({id: res.idUnico, txt: `${res.idUnico.substring(0,4)} | ${document.getElementById("i-mot").value}`}); document.getElementById("i-obs").value = ""; dibujarRecientes(); });
     }
-
     function enviarPrueba(){
-      const d={
-        accion:'guardarPrueba', usuario:USER, fecha: document.getElementById("g-fecha").value,
-        turno: document.getElementById("g-turno").value, proveedor: document.getElementById("pr-prov").value,
-        hInicio: document.getElementById("pr-h1").value, hFin: document.getElementById("pr-h2").value,
-        linea: document.getElementById("pr-linea").value, 
-        campo1: document.getElementById("pr-c1").value, campo2: document.getElementById("pr-c2").value,
-        campo3: document.getElementById("pr-c3").value, campo4: document.getElementById("pr-c4").value,
-        campo5: document.getElementById("pr-c5").value, campo6: document.getElementById("pr-c6").value
-      };
+      const d={accion:'guardarPrueba', usuario:USER, fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value, proveedor:document.getElementById("pr-prov").value, hInicio:document.getElementById("pr-h1").value, hFin:document.getElementById("pr-h2").value, linea:document.getElementById("pr-linea").value, campo1:document.getElementById("pr-c1").value, campo2:document.getElementById("pr-c2").value, campo3:document.getElementById("pr-c3").value, campo4:document.getElementById("pr-c4").value, campo5:document.getElementById("pr-c5").value, campo6:document.getElementById("pr-c6").value};
       if(!d.proveedor) return alert("Falta el proveedor");
       api(d, ()=>{ ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5","pr-c6"].forEach(id=>document.getElementById(id).value=""); });
     }
-
     function dibujarRecientes(){
-      const div=document.getElementById("lista-recientes");
-      div.innerHTML="<h4>Incidencias guardadas ahora:</h4>" + INC_REC.map(i=>`
-        <div class="prod-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" class="btn-delete action-btn">✕</button></div>
-      `).join("");
+      document.getElementById("lista-recientes").innerHTML="<h4>Recientes:</h4>" + INC_REC.map(i=>`<div class="prod-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" class="btn-delete action-btn">✕</button></div>`).join("");
     }
-
-    function borrarInc(id){
-      if(!confirm("¿Borrar?")) return;
-      api({accion:'borrarIncidencia', maquina:MAQ, idUnico:id}, () => {
-        INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes();
-      });
-    }
-
+    function borrarInc(id){ if(!confirm("¿Borrar?")) return; api({accion:'borrarIncidencia', maquina:MAQ, idUnico:id}, () => { INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes(); }); }
     function actualizarEtiquetasPrueba() {
       const linea = document.getElementById("pr-linea").value;
       const ids = ["c1","c2","c3","c4","c5","c6"];
       ids.forEach(id => document.getElementById("group-"+id).classList.remove("hidden"));
-      if (linea === "Finder") {
-        document.getElementById("lbl-c1").innerText = "MM"; document.getElementById("lbl-c2").innerText = "FE";
-        document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("lbl-c4").innerText = "INOX";
-        document.getElementById("lbl-c5").innerText = "MERMA 1"; document.getElementById("lbl-c6").innerText = "MERMA 2";
-      } else if (linea === "Medios densos") {
-        document.getElementById("lbl-c1").innerText = "ALUMINIO"; document.getElementById("lbl-c2").innerText = "HEAVIES";
-        document.getElementById("lbl-c3").innerText = "LIGEROS"; document.getElementById("lbl-c4").innerText = "LARGOS";
-        document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden");
-      } else if (linea === "Steinert") {
-        document.getElementById("lbl-c1").innerText = "MM"; document.getElementById("lbl-c2").innerText = "FE";
-        document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("group-c4").classList.add("hidden");
-        document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden");
-      } else if (linea === "Zurik") {
-        document.getElementById("lbl-c1").innerText = "MERMA 1"; document.getElementById("lbl-c2").innerText = "MERMA 2";
-        document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("group-c4").classList.add("hidden");
-        document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden");
-      }
+      if (linea === "Finder") { document.getElementById("lbl-c1").innerText = "MM"; document.getElementById("lbl-c2").innerText = "FE"; document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("lbl-c4").innerText = "INOX"; document.getElementById("lbl-c5").innerText = "MERMA 1"; document.getElementById("lbl-c6").innerText = "MERMA 2"; }
+      else if (linea === "Medios densos") { document.getElementById("lbl-c1").innerText = "ALUMINIO"; document.getElementById("lbl-c2").innerText = "HEAVIES"; document.getElementById("lbl-c3").innerText = "LIGEROS"; document.getElementById("lbl-c4").innerText = "LARGOS"; document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden"); }
+      else if (linea === "Steinert") { document.getElementById("lbl-c1").innerText = "MM"; document.getElementById("lbl-c2").innerText = "FE"; document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("group-c4").classList.add("hidden"); document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden"); }
+      else if (linea === "Zurik") { document.getElementById("lbl-c1").innerText = "MERMA 1"; document.getElementById("lbl-c2").innerText = "MERMA 2"; document.getElementById("lbl-c3").innerText = "MA"; document.getElementById("group-c4").classList.add("hidden"); document.getElementById("group-c5").classList.add("hidden"); document.getElementById("group-c6").classList.add("hidden"); }
     }
   </script>
 </body>
