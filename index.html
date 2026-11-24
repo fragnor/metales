@@ -4,10 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>App Metales v4.9</title>
-  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2c3e50; --secondary: #34495e; --accent: #d35400; --light: #ecf0f1; --white: #ffffff; --danger: #e74c3c; --success: #27ae60; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; color: var(--primary); }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); margin: 0; color: var(--primary); }
     #login-screen { position: fixed; inset: 0; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .login-card { background: white; padding: 30px; border-radius: 12px; width: 300px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -16,6 +15,7 @@
     .nav-modulos button.active { color: white; background: var(--accent); }
     .global-controls { background: white; padding: 15px; display: flex; gap: 20px; justify-content: center; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
     .global-controls div { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+    .global-controls input, .global-controls select { margin-bottom: 0; }
     nav.tabs { display: flex; background: var(--secondary); overflow-x: auto; scrollbar-width: none; }
     .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #bdc3c7; cursor: pointer; font-weight: 600; min-width: 100px; }
     .tab-btn.active { color: white; border-bottom: 4px solid var(--accent); background: rgba(255,255,255,0.1); }
@@ -171,11 +171,12 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwP40mYRVO7eUip5acFdXTr4aAh5glHoSGADByh6MWyTmQ1-ZU0Uy9VkDFqdNEOpKpm/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmqVatfRW6FwAEVZj0fkk8NINekCipLTf5SM0rS4bMN9mCxpSqkZlMUvtIzanlkPHY/exec";
     let USER="", MAQ="Finder", ASSETS={}, MODS=[false,false,false], INC_REC=[], PROD_ACTUAL=[];
-    let isSubmitting = false; 
+    let isSubmitting = false;
 
     function mod(n){ MODS[n-1]=true; }
+
     function obtenerTurnoSegunHora() {
       const hora = new Date().getHours();
       if (hora >= 6 && hora < 14) return "Mañana";
@@ -184,35 +185,56 @@
     }
 
     function ejecutarLogin(){
-      const u=document.getElementById("user").value, p=document.getElementById("pass").value;
-      if(!u || !p) return;
-      document.getElementById("btn-login").disabled = true;
-      document.getElementById("login-status").innerText="conectando...";
-      fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p})})
-      .then(r=>r.json()).then(res=>{
-        if(res.success){
-          USER=res.user; ASSETS=res;
+      const u = document.getElementById("user").value.trim();
+      const p = document.getElementById("pass").value.trim();
+      if(!u || !p) return alert("Escribe usuario y contraseña");
+
+      const btn = document.getElementById("btn-login");
+      const status = document.getElementById("login-status");
+      btn.disabled = true;
+      status.innerText = "conectando...";
+
+      fetch(SCRIPT_URL, { method:'POST', body: new URLSearchParams({accion:'login', user:u, pass:p}) })
+        .then(r => {
+          if(!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then(res => {
+          if(!res.success){
+            alert(res.error ? "Error: " + res.error : "Usuario o contraseña incorrectos");
+            return;
+          }
+          USER = res.user; ASSETS = res;
           document.getElementById("login-screen").classList.add("hidden");
           document.getElementById("app").classList.remove("hidden");
-          document.getElementById("header-usuario").innerText=USER.toUpperCase();
+          document.getElementById("header-usuario").innerText = USER.toUpperCase();
+
           const hoy = new Date();
           const mes = String(hoy.getMonth() + 1).padStart(2, '0');
           const dia = String(hoy.getDate()).padStart(2, '0');
-          document.getElementById("g-fecha").value = ${hoy.getFullYear()}-${mes}-${dia};
+          document.getElementById("g-fecha").value = `${hoy.getFullYear()}-${mes}-${dia}`;
+
           poblar("g-turno", ["Mañana","Tarde","Noche"]);
           document.getElementById("g-turno").value = obtenerTurnoSegunHora();
-          const mqs=["Finder","Zurik","Medios densos","Steinert"];
-          document.getElementById("tabs-maquinas").innerHTML=mqs.map(m=><button class="tab-btn ${m==='Finder'?'active':''}" onclick="setMaq(event,'${m}')">${m}</button>).join("");
+
+          const mqs = ["Finder","Zurik","Medios densos","Steinert"];
+          document.getElementById("tabs-maquinas").innerHTML =
+            mqs.map(m => `<button class="tab-btn ${m==='Finder'?'active':''}" onclick="setMaq(event,'${m}')">${m}</button>`).join("");
+
           poblar("i-mot", res.motivos);
           poblar("md-op", res.operarios);
           actualizarDesplegablesHoras();
           setMaq(null, "Finder");
           actualizarEtiquetasPrueba();
-        } else {
-          alert("Error de login");
-          document.getElementById("btn-login").disabled = false;
-        }
-      }).finally(()=>document.getElementById("login-status").innerText="");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("No se pudo conectar con el servidor.\n" + err.message);
+        })
+        .finally(() => {
+          btn.disabled = false;
+          status.innerText = "";
+        });
     }
 
     function sincronizarTodo() {
@@ -221,11 +243,11 @@
     }
 
     function actualizarDesplegablesHoras(){
-      const t=document.getElementById("g-turno").value;
-      let h=[];
-      if(t==='Mañana') h=r(6,14); else if(t==='Tarde') h=r(14,22); else h=r(22,23).concat(r(0,6));
-      const html=h.map(x=><option value="${x}">${x}</option>).join("");
-      ["i-h1","i-h2","pr-h1","pr-h2"].forEach(id=>document.getElementById(id).innerHTML=html);
+      const t = document.getElementById("g-turno").value;
+      let h = [];
+      if(t==='Mañana') h = r(6,14); else if(t==='Tarde') h = r(14,22); else h = r(22,23).concat(r(0,6));
+      const html = h.map(x => `<option value="${x}">${x}</option>`).join("");
+      ["i-h1","i-h2","pr-h1","pr-h2"].forEach(id => document.getElementById(id).innerHTML = html);
     }
 
     function r(s,e){
@@ -241,7 +263,7 @@
     }
 
     function setMaq(e, m){
-      MAQ=m; MODS=[false,false,false]; 
+      MAQ=m; MODS=[false,false,false];
       cancelarEdicion();
       if(e){
         document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -263,7 +285,9 @@
         dibujarListaProduccion(PROD_ACTUAL, true, "lista-prod-actual");
         dibujarListaProduccion(res.anterior, false, "lista-prod-anterior");
         dibujarHistorial(res.ultimasInc);
-      }).finally(()=>document.getElementById("global-loader").innerText="");
+      })
+      .catch(err => { console.error(err); alert("Error cargando datos: " + err.message); })
+      .finally(()=>document.getElementById("global-loader").innerText="");
     }
 
     function dibujarListaProduccion(lista, editable, containerId) {
@@ -272,20 +296,20 @@
         div.innerHTML = "<p style='color:gray; font-size:12px'>Sin registros.</p>";
         return;
       }
-      div.innerHTML = lista.map((p, idx) => 
+      div.innerHTML = lista.map((p, idx) => `
         <div class="prod-item">
           <div class="prod-info">
             <strong>Lote: ${p.lote}</strong><br>
             <span style="font-size:12px">${MAQ === 'Medios densos' ? 'H.Maq: '+p.hMaq + (p.m3Agua ? ' | '+p.m3Agua+'m³' : '') : 'Horas: '+p.hIni+' a '+p.hFin}</span>
           </div>
-          ${editable ? 
+          ${editable ? `
             <div class="prod-btns">
               <button class="btn-edit action-btn" onclick="cargarParaEditar('${p.id}')">✎</button>
               <button class="btn-delete action-btn" onclick="borrarProduccion('${p.id}')">✕</button>
             </div>
-           : <span class="badge-prev">Anterior</span>}
+          ` : `<span class="badge-prev">Anterior</span>`}
         </div>
-      ).join("");
+      `).join("");
     }
 
     function cargarParaEditar(id) {
@@ -343,7 +367,7 @@
         horasIni: document.getElementById("h-ini").value, horasFin: document.getElementById("h-fin").value, lote: document.getElementById("p-lote").value
       };
       if(!d.horasFin || !d.lote) return alert("Faltan datos");
-      api(d, (res)=>{ 
+      api(d, (res)=>{
         if(res.record) {
           if (pId) { const idx = PROD_ACTUAL.findIndex(x => x.id === pId); if(idx !== -1) PROD_ACTUAL[idx] = res.record; }
           else { PROD_ACTUAL.push(res.record); }
@@ -368,7 +392,7 @@
         m3Agua: document.getElementById("md-agua").value
       };
       if(!d.hMaqFin || !d.hProdFin || !d.contFin || !d.lote) return alert("Faltan datos");
-      api(d, (res)=>{ 
+      api(d, (res)=>{
         if(res.record) {
           if (pId) { const idx = PROD_ACTUAL.findIndex(x => x.id === pId); if(idx !== -1) PROD_ACTUAL[idx] = res.record; }
           else { PROD_ACTUAL.push(res.record); }
@@ -388,39 +412,66 @@
       document.getElementById("global-loader").innerText="Guardando...";
       fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(p)})
       .then(r=>r.json()).then(res=>{ if(res.success){ cb(res); } else alert("Error: "+res.error); })
+      .catch(err => { console.error(err); alert("No se pudo guardar. Revisa la conexión.\n" + err.message); })
       .finally(()=>{ isSubmitting = false; document.querySelectorAll(".btn-submit, .action-btn").forEach(b => b.disabled = false); document.getElementById("global-loader").innerText=""; });
     }
 
-    function poblar(id, a){ document.getElementById(id).innerHTML=a.map(x=><option value="${x}">${x}</option>).join(""); }
+    function poblar(id, a){
+      document.getElementById(id).innerHTML = (a || []).map(x => `<option value="${x}">${x}</option>`).join("");
+    }
+
     function dibujarHistorial(lista) {
       const div = document.getElementById("lista-historial");
-      if (!lista || lista.length === 0) { div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4><p style='font-size:12px; color:gray;'>No hay incidencias.</p>"; return; }
-      div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4>" + lista.map(inc => <div style="background:#fff; border-left:4px solid #bdc3c7; padding:10px; margin-bottom:8px; font-size:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1)"><div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent)"><span>⚠️ ${inc.motivo}</span><span>⏱️ ${inc.horas}h</span></div><div><b>Activo:</b> ${inc.activo}</div></div>).join("");
+      if (!lista || lista.length === 0) {
+        div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4><p style='font-size:12px; color:gray;'>No hay incidencias.</p>";
+        return;
+      }
+      div.innerHTML = "<h4>🕒 ÚLTIMAS INCIDENCIAS</h4>" + lista.map(inc => `
+        <div style="background:#fff; border-left:4px solid #bdc3c7; padding:10px; margin-bottom:8px; font-size:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1)">
+          <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent)">
+            <span>⚠️ ${inc.motivo}</span><span>⏱️ ${inc.horas}h</span>
+          </div>
+          <div><b>Activo:</b> ${inc.activo}</div>
+        </div>`).join("");
     }
+
     function setSeccion(s){
       document.getElementById("sec-horas").classList.toggle("hidden", s!=='horas');
       document.getElementById("sec-inc").classList.toggle("hidden", s!=='inc');
       document.getElementById("st-horas").classList.toggle("active", s==='horas');
       document.getElementById("st-inc").classList.toggle("active", s==='inc');
     }
+
     function cambiarModulo(m){
       document.getElementById("modulo-produccion").classList.toggle("hidden", m!=='produccion');
       document.getElementById("modulo-pruebas").classList.toggle("hidden", m!=='pruebas');
       document.getElementById("nav-prod").classList.toggle("active", m==='produccion');
       document.getElementById("nav-pruebas").classList.toggle("active", m==='pruebas');
     }
+
     function enviarInc(){
-      api({accion:'guardarIncidencia', maquina:MAQ, usuario:USER, fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value, horaParada:document.getElementById("i-h1").value, horaArranque:document.getElementById("i-h2").value, motivo:document.getElementById("i-mot").value, maquinaAfectada:document.getElementById("i-maq").value, observaciones:document.getElementById("i-obs").value}, (res)=>{ INC_REC.push({id: res.idUnico, txt: ${res.idUnico.substring(0,4)} | ${document.getElementById("i-mot").value}}); document.getElementById("i-obs").value = ""; dibujarRecientes(); });
+      api({accion:'guardarIncidencia', maquina:MAQ, usuario:USER, fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value, horaParada:document.getElementById("i-h1").value, horaArranque:document.getElementById("i-h2").value, motivo:document.getElementById("i-mot").value, maquinaAfectada:document.getElementById("i-maq").value, observaciones:document.getElementById("i-obs").value}, (res)=>{
+        INC_REC.push({id: res.idUnico, txt: `${res.idUnico.substring(0,4)} | ${document.getElementById("i-mot").value}`});
+        document.getElementById("i-obs").value = "";
+        dibujarRecientes();
+      });
     }
+
     function enviarPrueba(){
       const d={accion:'guardarPrueba', usuario:USER, fecha:document.getElementById("g-fecha").value, turno:document.getElementById("g-turno").value, proveedor:document.getElementById("pr-prov").value, hInicio:document.getElementById("pr-h1").value, hFin:document.getElementById("pr-h2").value, linea:document.getElementById("pr-linea").value, campo1:document.getElementById("pr-c1").value, campo2:document.getElementById("pr-c2").value, campo3:document.getElementById("pr-c3").value, campo4:document.getElementById("pr-c4").value, campo5:document.getElementById("pr-c5").value, campo6:document.getElementById("pr-c6").value};
       if(!d.proveedor) return alert("Falta el proveedor");
       api(d, ()=>{ ["pr-prov","pr-c1","pr-c2","pr-c3","pr-c4","pr-c5","pr-c6"].forEach(id=>document.getElementById(id).value=""); });
     }
+
     function dibujarRecientes(){
-      document.getElementById("lista-recientes").innerHTML="<h4>Recientes:</h4>" + INC_REC.map(i=><div class="prod-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" class="btn-delete action-btn">✕</button></div>).join("");
+      document.getElementById("lista-recientes").innerHTML = "<h4>Recientes:</h4>" + INC_REC.map(i => `<div class="prod-item"><span>${i.txt}</span><button onclick="borrarInc('${i.id}')" class="btn-delete action-btn">✕</button></div>`).join("");
     }
-    function borrarInc(id){ if(!confirm("¿Borrar?")) return; api({accion:'borrarIncidencia', maquina:MAQ, idUnico:id}, () => { INC_REC=INC_REC.filter(x=>x.id!==id); dibujarRecientes(); }); }
+
+    function borrarInc(id){
+      if(!confirm("¿Borrar?")) return;
+      api({accion:'borrarIncidencia', maquina:MAQ, idUnico:id}, () => { INC_REC = INC_REC.filter(x => x.id !== id); dibujarRecientes(); });
+    }
+
     function actualizarEtiquetasPrueba() {
       const linea = document.getElementById("pr-linea").value;
       const ids = ["c1","c2","c3","c4","c5","c6"];
